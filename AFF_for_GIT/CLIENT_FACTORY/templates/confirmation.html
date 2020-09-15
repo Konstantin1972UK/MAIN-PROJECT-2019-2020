@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    confirmation ELETON
+{% endblock %}
+
+{% block main %}
+    <form action="/send" method="post">
+        <input type="text"  name="castomer"  placeholder="Enter your NAME here"   maxlength=50 autofocus></input>
+        <p></p>
+        <input type="email" name="adress_to" placeholder="Enter your e-mail here" maxlength=50 autofocus></input>
+        <h4>ORDER</h4>
+        <table style="width: 1000px; display: block", cols = "2">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    {% for item in l_columns %}
+                        <th>{{ item }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+
+            <tbody>
+                    {% for item in l_order %}
+                    <tr>
+                        {% for i in item %}
+                            <td>{{ i }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        <h4>COMMENTS</h4>
+        <p><textarea name="comment" cols="100" rows="10"></textarea> </p>
+        <button class="btn btn-primary" type="submit">SEND ORDER</button>
+    </form>
+{% endblock %}
+

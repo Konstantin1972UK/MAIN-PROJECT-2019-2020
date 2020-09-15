@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+
+    <head>
+
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
+
+        <link href="/static/styles.css" rel="stylesheet">
+
+        <title>ostatky ELETON</title>
+
+    </head>
+
+    <body>
+<div class="container">
+  <h1>CSS only scrollable table body</h1>
+  <p>by PDG</p>
+<table class="table-scroll small-first-col">
+  <thead>
+    <tr>
+    <th>Head 1</th>
+    <th>Head 2</th>
+    <th>Head 3</th>
+    <th>Head 4</th>
+    </tr>
+  </thead>
+  <tbody class="body-half-screen">
+    <tr>
+      <td>1</td>
+      <td>First row</td>
+      <td>3</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>2</td>
+      <td>A very long cell content comes here, just to test it all!!!</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>2</td>
+      <td>3</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>2</td>
+      <td>3</td>
+      <td>There is an empty cell above!</td>
+    </tr><tr>
+      <td>1</td>
+      <td>2</td>
+      <td>3</td>
+      <td>4</td>
+    </tr><tr>
+      <td>1</td>
+      <td>2</td>
+      <td>3</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>2</td>
+      <td>3</td>
+      <td>4</td>
+    </tr><tr>
+      <td>1</td>
+      <td>2</td>
+      <td>3</td>
+      <td>4</td>
+    </tr><tr>
+      <td>1</td>
+      <td>2</td>
+      <td>3</td>
+      <td>4</td>
+    </tr><tr>
+      <td>1</td>
+      <td>2</td>
+      <td>3</td>
+      <td>4</td>
+    </tr><tr>
+      <td>1</td>
+      <td>2</td>
+      <td>3</td>
+      <td>4</td>
+    </tr><tr>
+      <td>1</td>
+      <td>2</td>
+      <td>3</td>
+      <td>4</td>
+    </tr><tr>
+      <td>1</td>
+      <td>2</td>
+      <td>3</td>
+      <td>4</td>
+    </tr><tr>
+      <td>1</td>
+      <td>2</td>
+      <td>3</td>
+      <td> Last row</td>
+    </tr>
+  </tbody>
+</table>
+  <h3>Notes</h3>
+  <p>The table uses flex properties to arrange the cell sizes, however, this tends to make them the same as "fixed width". To fix that, you need to create additional classes that target the <strong>td:nth-child()</strong> and <strong>th:nth-child()</strong> with a specific <strong>flex-basis</strong> property.</p>
+  <p>The <strong>height</strong> of the body also must be fixed and cannot be percentages (in the example above I use "vh")</p>
+</div>
+    </body>
+
+</html>

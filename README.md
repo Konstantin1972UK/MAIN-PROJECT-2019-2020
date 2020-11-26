@@ -1,6 +1,6 @@
 # MAIN-PROJECT-2019-2020
 This is my Current project.
-It consist of desktop (FACTORY-'Tkinter') and web applications(APP-'Flask').
+It consist of desktop application (FACTORY-'Tkinter') and web applications (APP-'Flask').
 FACTORY get different raw information from SQL-based 1C program, transform it and put part of it to FTP-server.
 FACTORY helps manager to analyze storage, preparing tasks for manufacturing.
 

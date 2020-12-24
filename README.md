@@ -1,4 +1,4 @@
-# MAIN-PROJECT-2019-2020
+# FACTORY ELETON PROJECT
 This is my Current project.
 It consist of desktop application (FACTORY-'Tkinter') and web applications (APP-'Flask').
 FACTORY gets different raw information from SQL-based 1C program, transforms it and put part of it to FTP-server.

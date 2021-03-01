@@ -14,8 +14,6 @@ from sqlite3 import Error
 from ftplib import FTP_TLS
 import helpic_factory  as helpic              # for special data
 import data_dict as dd
-# import pandas as pd
-# import xlwt                                   #for *.xls
 import os
 from openpyxl import Workbook
 

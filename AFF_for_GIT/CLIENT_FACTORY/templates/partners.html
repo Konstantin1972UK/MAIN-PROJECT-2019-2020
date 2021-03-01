@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    partner ELETON
+{% endblock %}
+
+{% block main %}
+    <h2>Програма "ПАРТНЕР"</h2>
+    <p>Для роботи з постійними покупцями ТОВ "ЕЛЕТОН" використовує "Модуль ПАРТНЕР для 1С".</p>
+    <p>Ми пропонуємо нашим покупцям скористатися можливістю:</p>
+    <ul align="left">
+        <li>доступ до інформації про залишки товару в реальному часі по основному складу металоконструкцій</li>
+        <li>доступ до інформації по своєму підприємству: рахунки-фактури, видаткові накладні</li>
+        <li>можливість формувати рахунки-фактури та "резервувати" по ним металоконструкції</li>
+        <li>заносити в "заявку на виробництво" товар, якого немає на складі</li>
+    </ul>
+    <p>Більш докладно: <a href="/partner_info">'partner_info.docx'</a></p>
+    <p>Бажаючим підключитися, відправляйте запит на: <a href="mailto:eleton.s@ukr.net" onclick="return myFunction_mail()">eleton.s@ukr.net</a></p>
+
+    <h2>Участники програми:</h2>
+    <ul align="left">
+        <li>"ЕЛІТОН ПЛЮС" (м. Київ) <a href="/partner_info_eliton" onclick="return myFunction_warn('http://eliton.com.ua/')">eliton.com.ua</a></li>
+        <li>"ЛІНА" (м. Київ) <a href="/partner_info_lina" onclick="return myFunction_warn('http://www.lina.com.ua/')">lina.com.ua </a></li>
+        <!--<li>"ПРОМАВТОМАТИКА" (м. Вінниця) <a href="/partner_info_pa">pa.ua</a></li>-->
+    </ul>
+
+
+    <script>
+        function myFunction_warn(partner){
+        let text = `You will be redirected to ${partner}\nRemember that it is another company!`;
+        if (confirm(text)) {
+            return true;
+        }
+        return false;
+        }
+    </script>
+
+      <script>
+    function myFunction_mail() {
+        let text ="Do you know that\nALEXANDER IS VERY BUSY person?\nSo, do not write useless questions.";
+        if(confirm(text)){
+            return true;
+        }
+        return false;
+    }
+    </script>
+{% endblock %}

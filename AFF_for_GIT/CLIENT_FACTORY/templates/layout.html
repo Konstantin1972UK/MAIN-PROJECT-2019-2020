@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+
+    <head>
+
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- documentation at http://getbootstrap.com/docs/4.1/, alternative themes at https://bootswatch.com/ -->
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
+        <!-- https://favicon.io/emoji-favicons/money-mouth-face/ -->
+        <link href="/static/favicon.ico" rel="icon">
+        <link href="/static/styles.css" rel="stylesheet">
+
+        <title>{% block title %}{% endblock %}</title>
+
+    </head>
+
+    <body>
+
+        <nav class="navbar navbar-expand-md navbar-light bg-light border">
+            <a class="navbar-brand" href="/"><span class="green">ELETON</span></a>
+            <!--<div class="collapse navbar-collapse" id="navbar">-->
+            <div>
+                <ul class="navbar-nav mr-auto mt-2">
+                        <li class="nav-item"><a class="nav-link" href="/" onclick="myFunction_ost()" style="color: red"><big>OSTATKY</big> </a></li>
+                        <li class="nav-item"><a class="nav-link" href="/map" style="color: orange"><big>MAP</big> </a></li>
+                        <li class="nav-item"><a class="nav-link" href="/partners" style="color: green"><big>PARTNER'S PROGRAM</big> </a></li>
+                        <li class="nav-item"><a class="nav-link" href="/price">Download 'price.zip'</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/catalog">Download CATALOG</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/ostatkyxls">Download 'ostatky.xls'</a></li>
+                        <li class="nav-item"><a class="nav-link" href="mailto:eleton.s@ukr.net" onclick="return myFunction_mail()"> eleton.s@ukr.net</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/" onclick="myFunction_info()" style="color: green">Info</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        {% if get_flashed_messages() %}
+        <header>
+             <div class="alert alert-primary border text-center" role="alert">
+                {{ get_flashed_messages()[0] }}
+             </div>
+
+             <div class="alert alert-primary border text-center" role="alert" style="color: red">
+                {{ get_flashed_messages()[1] }}
+             </div>
+
+        </header>
+        {% endif %}
+
+        <main class="container p-5">
+            {% block main %}{% endblock %}
+        </main>
+
+        <footer class="small text-center text-muted">
+            'OSTATKY ELETON APP' Release 1.1 (March_2021)
+        </footer>
+
+    <script>
+    function myFunction_info() {
+        let text ="This application was created for practasing in coding.\nAnd fortunatly, it started to be useful for some our castomers.\nIf you have some suggestion for improving this application,\nfeel free and contact me 'k_sh_2011@ukr.net'";
+        alert(text);
+    }
+    </script>
+
+    <script>
+    function myFunction_ost() {
+        let text ="We are checking if new info\nis present on the SERVER.....";
+        alert(text);
+    }
+    </script>
+
+    <script>
+    function myFunction_mail() {
+        let text ="Do you know that\nALEXANDER IS VERY BUSY person?\nSo, do not write useless questions.";
+        if(confirm(text)){
+            return true;
+        }
+        return false;
+    }
+    </script>
+
+    </body>
+
+</html>

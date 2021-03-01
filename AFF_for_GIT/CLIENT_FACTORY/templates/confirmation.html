@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    confirmation ELETON
+{% endblock %}
+
+{% block main %}
+    <form name="form_send" action="/send" method="post" onsubmit="return myFunction_send()">
+        <input type="text"  name="castomer"  placeholder="Enter your NAME here"   maxlength=50 autofocus></input>
+        <p></p>
+        <input type="email" name="address_to" placeholder="Enter your E-MAIL here" maxlength=50 autofocus></input>
+        <h4>ORDER</h4>
+        <table style="width: 1000px; display: block", cols = "2">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    {% for item in l_columns %}
+                        <th>{{ item }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+
+            <tbody>
+                    {% for item in l_order %}
+                    <tr>
+                        {% for i in item %}
+                            <td>{{ i }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        <h4>COMMENTS</h4>
+        <p><textarea name="comment" placeholder="Enter your COMMENTS here" cols="100" rows="10"></textarea> </p>
+        <button class="btn btn-primary" type="submit">SEND ORDER</button>
+
+    </form>
+
+    <script>
+        function myFunction_send(){
+        var var_castomer = document.form_send.castomer.value.trim();
+        var var_address_to = document.form_send.address_to.value;
+        if (var_castomer=="") {
+            alert("You have forgotten to fill\n NAME");
+            return false;
+            }
+        else if (var_address_to=="") {
+            alert ("You have forgotten to fill\n E-MAIL");
+            return false;
+            }
+        text = `Your ORDER wil be sent.\nCastomer: ${var_castomer}\nE-mail: ${var_address_to}`;
+
+        if (confirm (text)) {
+            return true;
+            }
+        return false;
+        }
+    </script>
+
+{% endblock %}
+
+

@@ -9,18 +9,6 @@ import helpic_client_factory as helpic   # for special data
 import re
 import xlwt                                   #for *.xls
 import os.path
-from threading import Thread
-
-# for creating EMPTY TABLE 'connection'
-# conn = sqlite3.connect("info_connection.db")
-# c = conn.cursor()
-# c.execute("CREATE TABLE connection (\
-#                        code INTEGER PRIMARY KEY NOT NULL,\
-#                        conn_ VARCHAR(30) NOT NULL,\
-#                        date_time VARCHAR(20) NOT NULL,\
-#                        remoute_addr VARCHAR(20) NOT NULL,\
-#                        remoute_port VARCHAR(5) NOT NULL,\
-#                        action VARCHAR(20) NOT NULL)")
 
 # https://medium.com/nuances-of-programming/%D0%BE%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%B9-python-%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%B2%D0%B0%D1%8F-%D1%80%D0%B5%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5-%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F-%D1%87%D0%B0%D1%81%D1%82%D1%8C-4-60e016f18422
 
@@ -46,19 +34,11 @@ from threading import Thread
 #Теперь, зафиксируйте все добавленные файлы на сервер     // git commit -m    / example - "First upload"
 #Запушьте все в master branch                             // git push heroku master
 
-# git config core.autocrlf true  ???
-
-# error: RPC failed; curl 56 OpenSSL SSL_read: Connection was reset, errno 10054
-# It might be because of the large size of repository and default buffer size of git
-# so by doing above(on git bash), git buffer size will get increase.
-# git config http.postBuffer 524288000
-
-
 app = Flask(__name__)
-# app.debug = True
-# statistic_flag = False                # for writing statistic to 'info_connection.db'
-statistic_flag   = True                 # for writing statistic to 'info_connection.db'
-connection_flag  = False                # connection to DATABASE   'info_connection.db'
+# app.debug = True                          # !!! Only for TESTING !!!
+statistic_flag   = True                   # for writing statistic to 'info_connection_heroku.db'
+# statistic_flag   = False                # for writing statistic to 'info_connection_heroku.db'
+
 app.secret_key = helpic.key if helpic.key else 'key'
 
 
@@ -74,6 +54,51 @@ app.config['MAIL_USE_SSL']    = True
 
 mail = Mail(app)
 
+# transmissing 'info_connection_heroku.db' to FTP-SERVER
+def f_transmissing_info_db():
+    ftps = f_connection_ftp_server(helpic.place_ftp, helpic.user_ftp, helpic.password_ftp)
+
+    file_name = 'info_connection_heroku.db'
+    file_name_ftp = f_get_date_time_now()
+    file_name_ftp = '{}_{}.db'.format(file_name[:-3], file_name_ftp)
+    file_name_ftp = re.sub('[- :]', '', file_name_ftp)
+
+    #control existng directory 'helpic.directory_ftp'
+    try:
+        ftps.cwd(helpic.directory_ftp)
+    except Exception as e:
+        print("Can not find directory '{}' at FTP-Server".format(helpic.directory_ftp), e)
+        return 1             # for preventing doing next code
+
+    # control existng file 'info_connection_heroku.db' on HEROKU
+    if os.path.exists(file_name):
+        ftps.storbinary('STOR ' + file_name_ftp, open(file_name, '+rb'))  # загрузка файла НА FTP-Server
+        print("Info changes are commited")
+        return 1
+    else:
+        print("Can not find '{}' on HEROKU".format(file_name))
+        return 0                                               # for preventing doing next code
+
+# getting date_time_now
+def f_get_date_time_now():
+    # 'hours=3 or 2' - difference time between heroku-server and Ukraine(Summer time=3, WINTER time=2)
+    date_time = (datetime.now() + timedelta(hours=2)).strftime('%Y-%m-%d %H:%M:%S:%f')  # 2020-07-06 17:17:02:399211
+    return date_time
+
+# setting cookies for NEW GUESTS
+def f_identificator(res):
+    # identificator = 20200812181316817485
+    identificator = request.cookies.get('conn_1')
+
+    if not identificator:
+        date_time = f_get_date_time_now()        # getting date_time_now
+        conn_ = re.sub('[ :-]', '', date_time)
+        res.set_cookie('conn_1', conn_, max_age=60 * 60 * 24 * 365)
+
+        print("NEW GUEST 'You are WELCOME.................'")
+
+    return res
+
 # connection to FTP-Server
 def f_connection_ftp_server(place, login, password):
     print('Connection to FTP-Server')
@@ -81,6 +106,7 @@ def f_connection_ftp_server(place, login, password):
         ftps = FTP_TLS(place, login, password)
         print("Connection is OK")
     except Exception as e:
+        ftps.close()
         print(e)
         print('Can not connect to FTP-Server')
         return None  # for prevent doing next code
@@ -111,13 +137,13 @@ def f_get_db():
     print('Information in your base WAS UPDATED')
 
     # time last connection to FTP-Server
-    # 'hours=3' - difference time between heroku-server and Ukraine
-    time_ftp_check = (datetime.now() + timedelta(hours=3)).strftime('%Y-%m-%d %H:%M:%S')
+    # 'hours=3 or 2(Winter) ' - difference time between heroku-server and Ukraine
+    time_ftp_check = (datetime.now() + timedelta(hours=2)).strftime('%Y-%m-%d %H:%M:%S')
 
     conn = sqlite3.connect("base_factory.db")
     cursor = conn.cursor()
     try:
-        cursor.execute("INSERT INTO prices_info VALUES(?,?)", (2, time_ftp_check))
+        cursor.execute("INSERT INTO prices_info VALUES(?,?)", (3, time_ftp_check))
         conn.commit()
     except sqlite3.IntegrityError as err:
         print("\033[031mSomething WRONG with 'prices_info' in 'base_factory.db'\n", err)
@@ -130,7 +156,7 @@ def f_get_db():
 def f_get_time_ftp_check():
     conn = sqlite3.connect("base_factory.db")
     cursor = conn.cursor()
-    time_ftp_check = cursor.execute("SELECT info FROM prices_info WHERE code=2")
+    time_ftp_check = cursor.execute("SELECT info FROM prices_info WHERE code=3")
     time_ftp_check = time_ftp_check.fetchone()
     conn.close()
     return time_ftp_check[0]
@@ -144,19 +170,23 @@ def f_load_db():
     data = cursor.execute("SELECT * FROM prices ORDER BY name ASC")
     data = data.fetchall()
 
-    base_update =cursor.execute("SELECT info FROM prices_info WHERE code=1")
-    base_update = base_update.fetchall()
+    # prices_info code=1 - time base creation
+    # prices_info code=2 - message info
+    # prices_info code=3 - time when was last connection to FTP
+    base_update    = cursor.execute("SELECT info FROM prices_info WHERE code=1")
+    # getting actual time of updating 'base_factory.db'
+    base_update = base_update.fetchone()[0]
+    message_update = cursor.execute("SELECT info FROM prices_info WHERE code=2")
+    message_update = message_update.fetchone()[0]
 
     conn.close()
-    # getting actual time of updating 'base_factory.db'
-    base_update = base_update[0][0]
 
     # elements for radiobuttons
     l_columns_start = ['Code', 'Name', 'Ostatok', 'PriceEleton']         # for first filling index.html
     set_radiobuttons_full = sorted(set([i[1].split()[0] for i in data]))
     set_radiobuttons = [i for i in set_radiobuttons_full] + l_columns_start
 
-    return data, base_update, set_radiobuttons, set_radiobuttons_full
+    return  data, base_update, message_update, set_radiobuttons, set_radiobuttons_full
 
 # creating columns for table
 def f_creating_columns(set_radiobuttons, data, identity_table=None, item_new_quantity=[]):
@@ -211,133 +241,30 @@ def f_creating_columns(set_radiobuttons, data, identity_table=None, item_new_qua
 
     return l_columns, data_for_row, data_for_row_order
 
-#info_connection.db
-def f_connection_info(res, action):
-    global connection_flag
-    print("start f_connection_info(res, action) connection_flag = ", connection_flag)
-    # for info_connection.db
-    # 'hours=3' - difference time between heroku-server and Ukraine
-    date_time = (datetime.now() + timedelta(hours=3)).strftime('%Y-%m-%d %H:%M:%S:%f')  # 2020-07-06 17:17:02:399211
-    # date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S:%f')  # 2020-07-06 17:17:02:399211 # For LOCAL TESTING ONLY
+#info_connection_heroku.db
+def f_connection_info(action, res=1):  #res=1 because of '/send'
 
-    # date_time = date_time[:-7]        ????????????????
-
+    date_time = f_get_date_time_now()  # 2020-07-06 17:17:02:399211
     remoute_addr = request.environ['REMOTE_ADDR']
-    print('remoute_addr = ', remoute_addr)
-    remoute_port = int(request.environ['REMOTE_PORT'])
+    file_name = 'info_connection_heroku.db'
+    identificator = request.cookies.get('conn_1')
+    identificator = identificator if identificator else "UnKnown -------- Guest"
 
-    ftps = f_connection_ftp_server(helpic.place_ftp, helpic.user_ftp, helpic.password_ftp)
-    print(1)
-    # contoll existing directory 'helpic.directory_ftp'
-    try:
-        ftps.cwd(helpic.directory_ftp)
-    except Exception as e:
-        print("Can not find directory '{}' at FTP-Server".format(helpic.directory_ftp), e)
-        return res             # for preventing doing next code
-    print(2)
-    # contoll existing  'info_connection.db' in directory 'helpic.directory_ftp'
-    file_name = 'info_connection.db'
+    conn = sqlite3.connect(file_name)
+    cursor = conn.cursor()
 
-    if file_name not in ftps.nlst():           #  ['info_connection.db', '.', '..', 'base_factory.db']
-        print("\033[31mCan not find 'info_connection.db' in directory '{}' at FTP-Server\033[0m".format(helpic.directory_ftp))
-        return res   # for preventing doing next code
-    print(3)
-    try:
-        # 1. Copy 'info_connection.db' from FTP-Server to HEROKU
-        with open(file_name, 'wb') as f:
+    print(date_time, identificator, date_time, remoute_addr, action)
 
-            ftps.retrbinary('RETR ' + file_name, f.write)  # rewriting 'info_connection.db'
-        # 2. Add to 'info_connection.db' new information
-        # info_connection.db/connection # code-int, conn_-varchar(30), date_time-varchar(20), remoute_addr-varchar(20), remoute_port-varchar(5), action-varchar(20)
+    cursor.execute("CREATE TABLE IF NOT EXISTS heroku_actions\
+                   (contact_id INTEGER PRIMARY KEY AUTOINCREMENT, identificator VARCHAR(30),\
+                    date_time VARCHAR(20), remoute_addr VARCHAR(20), action VARCHAR(20))")
 
-        # controll SIZE  'info_connection.db'
+    cursor.execute("INSERT INTO heroku_actions VALUES(?, ?, ?, ?, ?)",
+                   (None, identificator, date_time, remoute_addr, action))
+    conn.commit()
+    conn.close()
 
-        file_size = os.path.getsize(file_name)
-        print('file_size = ', file_size)
-        if file_size < 1000:
-            print("It seems that 'info_connection.db' very small")
-            return res
-
-        conn = sqlite3.connect(file_name)
-        cursor = conn.cursor()
-
-        # controll existing table 'connection' in "info_connection.db"
-        result = cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        tables = result.fetchall()   # getting tables in "info_connection.db"
-        print(5)
-        if not any([i[0] == "connection" for i in tables]):
-            conn.close()                                      # close connection before RETURN
-            os.remove(file_name)  # deleting EMPY 'info_connection.db' (without table)
-            print("\033[31mCan not find table 'connection' in 'info_connection.db'\033[0m")
-            return res                                        # for preventing doing next code
-        conn.close()
-        # identificator = 20200812181316817485
-        identificator = request.cookies.get('conn_')
-        print(6)
-        if not identificator:
-            conn_ = re.sub('[ :-]', '', date_time)
-            res.set_cookie('conn_', conn_, max_age=60 * 60 * 24 * 365)
-            identificator = conn_
-            print('identificator = ', identificator)
-            action = 'New GUEST-{}'.format(action)
-            print("NEW GUEST 'You are WELCOME.................'")
-
-        conn = sqlite3.connect(file_name)
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO connection VALUES(?, ?, ?, ?, ?, ?)",
-                               (None, identificator, date_time, remoute_addr, remoute_port, action))
-        conn.commit()
-        conn.close()
-        print(7, 'action = ', action )
-         # 3. Copy 'info_connection.db' from HEROKU to FTP-Server
-
-        if os.path.exists(file_name):
-            ftps.storbinary('STOR ' + file_name, open('info_connection.db', '+rb'))  # загрузка файла НА FTP-Server
-            print("Information in 'info_connection.db' at FTP-Server WAS UPDATED")
-            connection_flag = True
-            print("7 end OK f_connection_info(res, action) connection_flag = ", connection_flag)
-            return res      # All is OK
-        #for ALL SITUATIONS
-        connection_flag = True
-        print("end OK f_connection_info(res, action) connection_flag = ", connection_flag)
-        return res  # All is OK
-
-    except Exception as e:
-        print("\033[31mSomething WRONG with connection to DATABASE'\033[0m")
-        ftps.quit()
-        print("end NOT OK f_connection_info(res, action) connection_flag = ", connection_flag)
-        return res                                      # for preventing doing next code
-
-#rewriting 'info_connection.db' on HEROKU
-def f_getting_info_connection():
-    global connection_flag
-    # connection to FTP-Server
-    ftps = f_connection_ftp_server(helpic.place_ftp, helpic.user_ftp, helpic.password_ftp)
-    try:
-        ftps.cwd(helpic.directory_ftp)
-    except Exception as e:
-        ftps.quit()
-        print(e)
-        print("Can not find directory '{}' at FTP-Server".format(helpic.directory_ftp))
-        return None  # for preventing doing next code
-    try:
-        file_name = 'info_connection.db'
-        # 1. Copy 'info_connection.db' from FTP-Server to HEROKU
-        with open(file_name, 'wb') as f:
-            ftps.retrbinary('RETR ' + file_name, f.write)  # rewriting 'info_connection.db'
-
-    except Exception as e:
-        ftps.quit()
-        connection_flag = False
-        print(e)
-        print("Can not find 'base_factory.db' in directory '{}' at FTP-Server".format(helpic.directory_ftp))
-        return None  # for preventing doing next code
-
-    ftps.quit()
-    connection_flag = True
-    print('f_getting_info_connection() = ', 'file_name = ', os.path.getsize(file_name))
-    print("Information in 'info_connection.db' WAS UPDATED from FTP-Server")
-    return 1
+    return res
 
 # data_order
 def f_get_data_order(identity_table):
@@ -351,33 +278,17 @@ def f_get_data_order(identity_table):
 # keyhole
 @app.route('/keyhole')
 def keyhole():
-    global connection_flag
 
-    connection_flag = False   # before checking "f_getting_info_connection()"
+    transm = f_transmissing_info_db()  # transmissing 'info_connection_heroku.db' to FTP-SERVER
 
     clue = request.args.get(helpic.statistic)
 
-    if not f_getting_info_connection():            #rewriting 'info_connection.db' on HEROKU
-        return jsonify("Something has happend WRONG")
-
-    if not connection_flag:                        # get from    f_getting_info_connection()
-        return "<p>Something WRONG 'with info_connection.db'</p>\
-                <p>if not connection_flag = {} </p>".format(connection_flag)
-
-    # because of "app[web.1]: sqlite3.OperationalError: no such table: connection"
-    try:
-        conn = sqlite3.connect("info_connection.db")
-        cursor = conn.cursor()
-        data = cursor.execute("SELECT * FROM connection")
-        data = data.fetchall()
-        columns = [desc[0] for desc in cursor.description]  # for Excell-file
-        conn.close()
-    except sqlite3.OperationalError as e:
-        conn.close()
-        os.remove("info_connection.db")
-        connection_flag = False
-        print("Exception during opening DB 'info_connection.db'", e, sep='\n')
-        return jsonify("Exception during opening DB 'info_connection.db'")
+    conn = sqlite3.connect("info_connection_heroku.db")
+    cursor = conn.cursor()
+    data = cursor.execute("SELECT * FROM heroku_actions")
+    data = data.fetchall()
+    columns = [desc[0] for desc in cursor.description]  # for Excell-file
+    conn.close()
 
     if clue == helpic.clue_1:
         # sql-data to Excell
@@ -390,85 +301,100 @@ def keyhole():
     elif clue == helpic.clue_2:
         # data = (118, '20200706174754855616', '2020-07-07 13:39:47', '127.0.0.1', '57356', 'index_page')
         l = sorted(set([(i[2][:10], i[1]) for i in data]), key=lambda x: x[0])
+
         return ''.join(['<p>' + '------'.join(i) + '</p>' for i in l])
 
     elif clue == helpic.clue_3:
         # data = (118, '20200706174754855616', '2020-07-07 13:39:47', '127.0.0.1', '57356', 'index_page')
-        l = sorted(data, key=lambda x: x[2])
+        l = sorted([i for i in data], key=lambda x: x[2])
+
         return ''.join( ['<p>' + ' --- '.join(i[1:]) + '</p>' for i in l] )
 
     else:
         return jsonify(False)
 
-
 @app.route('/')
 def index():
+    transm = f_transmissing_info_db()  # transmissing 'info_connection_heroku.db' to FTP-SERVER
+
     """ Show ostatky sklad MK"""
     f_get_db()                                                               # updating 'base_factory.db' from FTP-Server
     time_ftp_check = f_get_time_ftp_check()                                  # time last connection to FTP-Server
-    data, base_update, set_radiobuttons, set_radiobuttons_full = f_load_db() # loading data from 'base_factory.db'
+    data, base_update, message_update, set_radiobuttons, set_radiobuttons_full = f_load_db() # loading data from 'base_factory.db'
     l_columns, data_for_row, data_for_row_order = f_creating_columns(set_radiobuttons, data)     # creating data with filtered columns
     # flash-messege about 'base_update'
     messege_ost     = 'Ostatky was successfully updated on {}.'.format(base_update)
     flash('{} We have used cookies for your identification.'.format(messege_ost))
-
+    flash(message_update)
 
     action = 'index_page'
     res = make_response(render_template('index.html', items=data_for_row, base_update=base_update, time_ftp_check=time_ftp_check, \
                         set_radiobuttons=set_radiobuttons, set_radiobuttons_full=set_radiobuttons_full, \
                         l_columns_full=l_columns_full, l_columns=l_columns, l_order=data_for_row_order))
-
-    return f_connection_info(res, action) if statistic_flag else res
+    res = f_identificator(res)        # setting cookies for NEW GUESTS
+    return f_connection_info(action, res) if statistic_flag else res
 
 @app.route('/map')
 def map():
     action = 'map_page'
     res = make_response(render_template('map.html'))
-    return f_connection_info(res, action) if statistic_flag else res
+    res = f_identificator(res)  # setting cookies for NEW GUESTS
+    return f_connection_info(action, res) if statistic_flag else res
 
 @app.route('/partners')
 def partner():
     action = 'partners_page'
     res = make_response(render_template('partners.html'))
-    return f_connection_info(res, action) if statistic_flag else res
+    res = f_identificator(res)  # setting cookies for NEW GUESTS
+    return f_connection_info(action, res) if statistic_flag else res
 
 @app.route('/partner_info')
 def partner_info():
     action = 'partner_info'
     res = send_file('partner_info.docx', as_attachment=True)
+    res = f_identificator(res)  # setting cookies for NEW GUESTS
     return f_connection_info(res, action) if statistic_flag else res
 
 @app.route('/partner_info_eliton')
 def partner_info_eliton():
     action = 'partner_info_eliton'
     res = redirect('http://eliton.com.ua/')
-    return f_connection_info(res, action) if statistic_flag else res
+    res = f_identificator(res)  # setting cookies for NEW GUESTS
+    return f_connection_info(action, res) if statistic_flag else res
 
 @app.route('/partner_info_lina')
 def partner_info_lina():
     action = 'partner_info_lina'
     res = redirect('http://www.lina.com.ua/')
-    return f_connection_info(res, action) if statistic_flag else res
+    res = f_identificator(res)  # setting cookies for NEW GUESTS
+    return f_connection_info(action, res) if statistic_flag else res
 
 @app.route('/partner_info_pa')
 def partner_info_pa():
     action = 'partner_info_pa'
     res = redirect('https://www.pa.ua/')
-    return f_connection_info(res, action) if statistic_flag else res
+    res = f_identificator(res)  # setting cookies for NEW GUESTS
+    return f_connection_info(action, res) if statistic_flag else res
 
 @app.route('/send', methods=["GET", "POST"])
 def send():
-    adress_to = request.form.getlist('adress_to')
-    identity = request.cookies.get('conn_')       # current user
+    global statistic_flag
+    address_to = request.form.getlist('address_to')
+    identity = request.cookies.get('conn_1')  # current user
+
+    if not identity:                   # protection against missing cookies
+        return redirect('/')
+
     identity_table = 'order_' + identity
 
-    if request.method == "POST" and adress_to:
+    if request.method == "POST" and address_to:
         castomer = request.form.getlist('castomer')
         comment  = request.form.getlist('comment')
         action = 'send_order'
         greeting = 'Hello FRIEND! I am HEROKU and I have found an ORDER!'
 
         l_text_order = []
+        # (14990, 'Козырёк водоотливной', 'ВК42 Козырёк водоотливной', 10, 219.96, 182.52, 182.52, 186.96, 0, 1)
         data_order = f_get_data_order(identity_table)
 
         counter = 1
@@ -481,58 +407,38 @@ def send():
         text_warning = 'DO NOT REPLY to this address. I am a BOT.'  + '\n'
         text_order    = '- ' * 10 + 'ORDER'     + '- ' * 10 + '\n' + '\n'.join(l_text_order) + '\n'
         text_castomer = '- ' * 9  + 'CASTOMER ' + '- ' * 9 +  '\n' + castomer[0] + '\n'
-        text_email    = '- ' * 10 + 'E-MAIL '   + '- ' * 9 +  '\n' + adress_to[0] + '\n'
+        text_email    = '- ' * 10 + 'E-MAIL '   + '- ' * 9 +  '\n' + address_to[0] + '\n'
         text_comment  = '- ' * 10 + 'COMMENT'   + '- ' * 9 +  '\n' + comment[0]
 
         msg = Message(greeting, sender=helpic.mail_username)
         msg.recipients = [helpic.mail_my_personal, helpic.mail_alexandr]         # for PRODUCTION
-        # msg.recipients = [helpic.mail_my_personal]                             # for TESTING ONLY
 
         # # copy for CASTOMER
-        if adress_to:                     # preventing from sending without e-mail
-            msg.add_recipient(adress_to[0])
+        if address_to:                     # preventing from sending without e-mail
+            msg.add_recipient(address_to[0])
 
         msg.body =  text_warning + text_order + text_castomer + text_email + text_comment
 
-        # OLD VARIANT
-        # res = mail.send(msg)
-        # res = f_connection_info(res, action) if statistic_flag else res
-
-        #NEW VARIANT
-        # thr = Thread(target=f_send, args=((mail, msg, action,)))
-        # thr.start()
-
-        #THIRD VARIANT
-        print("Sending 111..............")
+        print("Sending start..............")
         with app.app_context():
             print("Sending contest.............")
-            res = mail.send(msg)
-            f_connection_info(res, action)
-            print("was sent 1111................")
-
+            mail.send(msg)
+            print("Sending end.................")
 
         flash('!!!  Your ORDER was SENT  !!!')
         # deleting info in TABLE after sending
         conn = sqlite3.connect('orders.db')
+
         cur = conn.cursor()
         quary = "DELETE FROM {table}"
         cur.execute(quary.format(table=identity_table))
         conn.commit()
         conn.close()
-        return index()
 
-# SENDING by THREAD
-def f_send(mail, msg, action):
-    print("Sending..............")
-    # STATISTIC creates ERROR. SEE LATER
-    # if statistic_flag:
-    #     f_connection_info(1, action)
-    with app.app_context():
-        mail.send(msg)
+    if statistic_flag:
+        f_connection_info(action)
 
-    print("was sent................")
-
-
+    return redirect('/')
 
 @app.route('/groups', methods=["GET", "POST"])
 def groups():
@@ -540,27 +446,31 @@ def groups():
     time_ftp_check = f_get_time_ftp_check()   # time last connection to FTP-Server
 
     # Database 'orders.db' creating TABLES
-    identity = request.cookies.get('conn_')  # current user
+    identity = request.cookies.get('conn_1')  # current user
 
-    if identity:
-        # creating "orders.db" if it does not exist
-        conn = sqlite3.connect('orders.db')
-        cur = conn.cursor()
-        quary = "CREATE TABLE  IF NOT EXISTS {table}  (code INTEGER PRIMARY KEY AUTOINCREMENT, \
-                          code_item INTEGER NOT NULL,\
-                          group_item VARCHAR(50) NOT NULL,\
-                          name VARCHAR(50) NOT NULL,\
-                          ostatok_mk INTEGER NOT NULL,\
-                          price NUMERIC(2) NOT NULL,\
-                          priceP NUMERIC(2) NOT NULL,\
-                          priceP1 NUMERIC(2) NOT NULL,\
-                          priceP2 NUMERIC(2) NOT NULL,\
-                          priceP3 NUMERIC(2) NOT NULL,\
-                          order_item INTEGER NOT NULL)"
-        identity_table = 'order_' + identity
-        cur.execute(quary.format(table=identity_table))
-        conn.commit()
-        conn.close()
+    if not identity:                         # protection against missing cookies
+        return redirect('/')
+
+    # creating "orders.db" if it does not exist
+    identity_table = 'order_' + identity  # for 'orders.db'
+    conn = sqlite3.connect('orders.db')
+    cur = conn.cursor()
+    quary = "CREATE TABLE  IF NOT EXISTS {table}  (code INTEGER PRIMARY KEY AUTOINCREMENT, \
+                                          code_item INTEGER NOT NULL,\
+                                          group_item VARCHAR(50) NOT NULL,\
+                                          name VARCHAR(50) NOT NULL,\
+                                          ostatok_mk INTEGER NOT NULL,\
+                                          price NUMERIC(2) NOT NULL,\
+                                          priceP NUMERIC(2) NOT NULL,\
+                                          priceP1 NUMERIC(2) NOT NULL,\
+                                          priceP2 NUMERIC(2) NOT NULL,\
+                                          priceP3 NUMERIC(2) NOT NULL,\
+                                          order_item INTEGER NOT NULL)"
+
+    cur.execute(quary.format(table=identity_table))
+    conn.commit()
+    conn.close()
+
 
     # data_order = [(227, 'МКН ', 'МКН 432М IP31', 72, 607.86, 461.94, 474.12, 486.24, 1), (499, 'МКН ', 'МКН 55.25М IP31', 29, 1150.02, 874.02, 897, 919.98, 1)]
     # data_order 'type' = 'tuple'
@@ -569,23 +479,19 @@ def groups():
 
     """ Show ostatky sklad MK using selected radiobuttons"""
     if request.method == "GET":
-        data, base_update, set_radiobuttons, set_radiobuttons_full = f_load_db()  # loading data from 'base_factory.db'
+        data, base_update, message_update, set_radiobuttons, set_radiobuttons_full = f_load_db()  # loading data from 'base_factory.db'
         l_columns, data_for_row, data_for_row_order = f_creating_columns(set_radiobuttons, data)
         return render_template('index.html', items=data_for_row, base_update=base_update, time_ftp_check=time_ftp_check, \
                                set_radiobuttons=set_radiobuttons, set_radiobuttons_full=set_radiobuttons_full,\
                                l_columns_full=l_columns_full, l_columns=l_columns)
 
     else:
-        data, base_update, set_radiobuttons, set_radiobuttons_full = f_load_db()  # loading data from 'base_factory.db'
+        data, base_update,  message_update, set_radiobuttons, set_radiobuttons_full = f_load_db()  # loading data from 'base_factory.db'
         set_radiobuttons  = request.form.getlist('groups')
         item_code         = request.form.getlist('cart')       # adding to 'l_orders'
         item_delete       = request.form.getlist('delete')     # deleting from 'l_orders'
         item_new_quantity = request.form.getlist('order')      # getting 'new_quantity'item for changing the quantity of orders in 'data_order'
         confirmation      = request.form.getlist('confirm')    # getting 'confirm'
-
-        # print('item_new_quantity _up = ', item_new_quantity)
-        # print('data_order = ', data_order)
-
 
         #  column 'Code' must be oh the screen
         set_radiobuttons = set_radiobuttons if 'Code' in set_radiobuttons else ['Code'] + set_radiobuttons
@@ -606,7 +512,20 @@ def groups():
             # ('Др2-54 Д.Дин-рейка.', '1'), ('ВК42 Козырёк водоотливной', '2')]
             l_order   = [(a[2], b) for a, b in zip(data_order, item_new_quantity)]
             res = make_response(render_template('confirmation.html', l_columns=l_columns, l_order=l_order))
-            return f_connection_info(res, action)
+
+            # writing quantity to 'orders.db' table "'order_' + identity"
+            conn = sqlite3.connect('orders.db')
+            cur = conn.cursor()
+            for i in l_order:
+                order_item, order_quantity = i
+                order_quantity = int(order_quantity)
+
+                quary_update = "UPDATE {table} SET order_item={quantity} WHERE name='{item}'"
+                cur.execute( quary_update.format( table=identity_table, quantity=order_quantity, item=order_item ))
+                conn.commit()
+
+            conn.close()
+            return f_connection_info(action, res) if statistic_flag else res
 
         # removing items to the 'data_order'
         if item_delete:
@@ -633,6 +552,7 @@ def groups():
             action = 'cart'
 
             item_code = item_code[0]        # get 'item code'
+
             for i in data:
                 # (14776, 'Козырёк водоотливной', 'ВК4.15 Козырёк водоотливной', '', 140.16, 116.28, 116.28, 119.1, 0)
                 if item_code == str(i[0]):
@@ -650,13 +570,21 @@ def groups():
         res = make_response(render_template('index.html', items=data_for_row, base_update=base_update, time_ftp_check=time_ftp_check, \
                             set_radiobuttons=set_radiobuttons, set_radiobuttons_full=set_radiobuttons_full, \
                             l_columns_full=l_columns_full, l_columns=l_columns, l_order=data_for_row_order))
-        return f_connection_info(res, action) if statistic_flag else res
+        return f_connection_info(action, res) if statistic_flag else res
 
 # DOWNLOAD price.zip from SECOND FTP-Server
 @app.route('/price')
 def price():
+    global connection_flag
+
     print('downloading price..................')
     ftps = f_connection_ftp_server(helpic.place_ftp, helpic.user_ftp, helpic.password_ftp)
+
+    if not ftps:
+        connection_flag = False
+        print("@app.route('/price')\nSomething WRONG with connection to FTP-Server")
+        return redirect('/')
+
     ftps.cwd(helpic.path_price_ftp)
     file_name = 'price.zip'
     with open(file_name, 'wb') as f:
@@ -666,7 +594,7 @@ def price():
     action = 'download_price'
     res = send_file('price.zip', as_attachment=True)
     print('/price')
-    return f_connection_info(res, action) if statistic_flag else res
+    return f_connection_info(action, res) if statistic_flag else res
 
 # DOWNLOAD CatalogEleton from HEROKU
 @app.route('/catalog')
@@ -676,12 +604,7 @@ def catalog():
     # return redirect('https://mega.nz/folder/qxknFQhB#31uULMJB8IP9QZ0cLtIcww')
     action = 'download_catalog'
     res = redirect('https://mega.nz/folder/qxknFQhB#31uULMJB8IP9QZ0cLtIcww')
-    return f_connection_info(res, action) if statistic_flag else res
-
-# Update OSTATKY
-@app.route('/update')
-def update():
-    return redirect('/')
+    return f_connection_info(action, res) if statistic_flag else res
 
 # DOWNLOAD 'ostatky.txt' from HEROKU
 @app.route('/ostatkyxls')
@@ -710,7 +633,7 @@ def ostatkyxlsx():
     # return send_file('ostatky.xls', as_attachment=True)
     action = 'download_ostatky'
     res = send_file('ostatky.xls', as_attachment=True)
-    return f_connection_info(res, action) if statistic_flag else res
+    return f_connection_info(action, res) if statistic_flag else res
 
 if __name__ == '__main__':
-     app.run()
+    app.run()

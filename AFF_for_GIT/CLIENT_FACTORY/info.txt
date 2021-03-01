@@ -1,0 +1,25 @@
+----------------------------------------------
+Release_APP 1.1 (February 2021)
+1. f_identificator(res) # setting cookies for NEW GUESTS in ALL situations
+    /, /groups, /map, /partners, /partner_info, /partner_info_eliton, /partner_info_lina, /partner_info_pa
+2. Added JS for 'eleton.s@ukr.net'
+3. Added button 'Info' in nav-bar with JS
+4. 'Promavtomatika' temporary removed from 'Partner Program'
+5. SMTP is changed from UKR.NET to GMAIL
+6. 'confirmation.html'  added JS for button 'SEND ORDER'
+7. Button "UPDATE OSTATKY" is removed
+8. Added JS for 'OSTATKY'
+9. 'partners.html' added JS for 'eleton.s@ukr.net', 'http://www.lina.com.ua/', 'http://eliton.com.ua/'
+10.'index.html' added JS for button 'CONFIRM'
+11. Added 'f_transmissing_info_db()'
+12. Changed f_connection_info(action, res=1) / DO NOT WORK CORRECTLY/
+13. Added file 'info.txt'
+14. info_connection_heroku,db is copying to FTP, and not backwards.
+15. info_connection_heroku_20210218104746922584.db creates every action and is copying to FTP-Server
+16. flash(message_update) table=price.info code=2
+
+
+
+----------------------------------------------
+Release 1.0 (June 2020)
+----------------------------------------------

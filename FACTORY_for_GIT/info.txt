@@ -2,7 +2,7 @@
 Release_Factory 1.0 (March 2021)
 1. Added file info.txt with REALEAS's descriptions
 2. Added data_dict.py for dictionaries: d_specification, d_original, d_dubli_ip54
-3. Added button 'MESSAGE' and field 'TEXT'
+3. Added buttons 'M PUT', 'M CHECK' and field 'TEXT'
 4. Added  code=2 in prices_info for TEXT_MESSAGE
 5. Remove libraries: pandas, xlwt. Add library openpyxl. Creating 'statistic.xlsx' was changed.
 7. New column 'Zayavka' at screen RASSCHET

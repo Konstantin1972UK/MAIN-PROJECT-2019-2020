@@ -7,3 +7,5 @@ FACTORY helps manager to analyze storage, preparing tasks for manufacturing.
 APP get info about items from FTP-server. 
 APP has several pages, SMTP, show item storage, different filters, links.
 https://eleton.herokuapp.com/
+
+(Python, JavaScript, Tkinter, SQL, Flask, FTP, Jinja, HTML, CSS and GIT)

@@ -7,8 +7,10 @@ from ftplib import FTP_TLS
 import pandas as pd
 import helpic_client_factory as helpic   # for special data
 import re
-import xlwt                                   #for *.xls
-import os.path
+import xlwt                              #for *.xls
+import os
+
+import pickle
 
 # https://medium.com/nuances-of-programming/%D0%BE%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%B9-python-%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%B2%D0%B0%D1%8F-%D1%80%D0%B5%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5-%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F-%D1%87%D0%B0%D1%81%D1%82%D1%8C-4-60e016f18422
 
@@ -40,7 +42,6 @@ statistic_flag   = True                   # for writing statistic to 'info_conne
 # statistic_flag   = False                # for writing statistic to 'info_connection_heroku.db'
 
 app.secret_key = helpic.key if helpic.key else 'key'
-
 
 l_columns_full = ['Code', 'Group', 'Name', 'Ostatok', 'PriceEleton', 'PriceP', 'PriceP1', 'PriceP2', 'PriceP3']
 
@@ -74,10 +75,10 @@ def f_transmissing_info_db():
     if os.path.exists(file_name):
         ftps.storbinary('STOR ' + file_name_ftp, open(file_name, '+rb'))  # загрузка файла НА FTP-Server
         print("Info changes are commited")
-        return 1
+        return 0
     else:
         print("Can not find '{}' on HEROKU".format(file_name))
-        return 0                                               # for preventing doing next code
+        return 2                                               # for preventing doing next code
 
 # getting date_time_now
 def f_get_date_time_now():
@@ -87,6 +88,8 @@ def f_get_date_time_now():
 
 # setting cookies for NEW GUESTS
 def f_identificator(res):
+    # print(2, request, type(request))
+    # print(2, request.__dict__)
     # identificator = 20200812181316817485
     identificator = request.cookies.get('conn_1')
 
@@ -96,7 +99,6 @@ def f_identificator(res):
         res.set_cookie('conn_1', conn_, max_age=60 * 60 * 24 * 365)
 
         print("NEW GUEST 'You are WELCOME.................'")
-
     return res
 
 # connection to FTP-Server
@@ -116,22 +118,21 @@ def f_connection_ftp_server(place, login, password):
 def f_get_db():
     # connection to FTP-Server
     ftps = f_connection_ftp_server(helpic.place_ftp, helpic.user_ftp, helpic.password_ftp)
-
     try:
         ftps.cwd(helpic.directory_ftp)
 
     except Exception as e:
         print("Can not find directory '{}' at FTP-Server".format(helpic.directory_ftp))
-        return None           # for preventing doing next code
+        return 1           # for preventing doing next code
 
     try:
-        file_name = 'base_factory.db'
+        file_name = helpic.file_name
         with open(file_name, 'wb') as f:
             ftps.retrbinary('RETR ' + file_name, f.write)     # rewriting 'base_factory.db'
 
     except Exception as e:
         print("Can not find 'base_factory.db' in directory '{}' at FTP-Server".format(helpic.directory_ftp))
-        return None           # for preventing doing next code
+        return 2           # for preventing doing next code
 
     ftps.quit()
     print('Information in your base WAS UPDATED')
@@ -149,7 +150,6 @@ def f_get_db():
         print("\033[031mSomething WRONG with 'prices_info' in 'base_factory.db'\n", err)
     finally:
         conn.close()
-
     return 0
 
 # time last connection to FTP-Server
@@ -177,14 +177,22 @@ def f_load_db():
     # getting actual time of updating 'base_factory.db'
     base_update = base_update.fetchone()[0]
     message_update = cursor.execute("SELECT info FROM prices_info WHERE code=2")
-    message_update = message_update.fetchone()[0]
+
+    try:
+        message_update = message_update.fetchone()[0]
+    except Exception as e:
+        print("It is exception....", e)
+        message_update = ''
 
     conn.close()
 
     # elements for radiobuttons
     l_columns_start = ['Code', 'Name', 'Ostatok', 'PriceEleton']         # for first filling index.html
+    l_prod_start = ['МКН', 'МКС', 'ЕР']                                        # for first filling index.html
     set_radiobuttons_full = sorted(set([i[1].split()[0] for i in data]))
-    set_radiobuttons = [i for i in set_radiobuttons_full] + l_columns_start
+
+    # set_radiobuttons = [i for i in set_radiobuttons_full] + l_columns_start
+    set_radiobuttons = l_prod_start + l_columns_start
 
     return  data, base_update, message_update, set_radiobuttons, set_radiobuttons_full
 
@@ -211,7 +219,7 @@ def f_creating_columns(set_radiobuttons, data, identity_table=None, item_new_qua
             conn = sqlite3.connect('orders.db')
             cur = conn.cursor()
             quary = "UPDATE {table} SET order_item={new_quantity} WHERE code_item={code_item}"
-            # print(quary)
+
             cur.execute(quary.format(table=identity_table, new_quantity=new_quantity, code_item=i[0]))
             conn.commit()
             conn.close()
@@ -220,10 +228,19 @@ def f_creating_columns(set_radiobuttons, data, identity_table=None, item_new_qua
     # creating columns = CHECK flags
     # l_columns_full = ['Code', 'Group', 'Name', 'Ostatok', 'PriceEleton', 'PriceP', 'PriceP1', 'PriceP2', 'PriceP3']
     data_for_row       = []
+
+    # data (14776, 'Козырёк водоотливной', 'ВК4.15 Козырёк водоотливной', '', 173.1, 143.64, 143.58, 147.06, 0)
+
     for i in data:
+        item = i[1].split()[0]
+        if item not in set_radiobuttons:
+            continue
+
         tmp_data = []
         for num, columns in enumerate(l_columns_full):
-            if columns in set_radiobuttons:
+
+            # print(item, item in set_radiobuttons)
+            if ((columns in set_radiobuttons) and (item in set_radiobuttons)) :
                 tmp_data.append(i[num])
         data_for_row.append(tmp_data)
 
@@ -242,9 +259,8 @@ def f_creating_columns(set_radiobuttons, data, identity_table=None, item_new_qua
     return l_columns, data_for_row, data_for_row_order
 
 #info_connection_heroku.db
-def f_connection_info(action, res=1):  #res=1 because of '/send'
-
-    date_time = f_get_date_time_now()  # 2020-07-06 17:17:02:399211
+def f_connection_info(action, res=1):                      #res=1 because of '/send'
+    date_time = f_get_date_time_now()                      # 2020-07-06 17:17:02:399211
     remoute_addr = request.environ['REMOTE_ADDR']
     file_name = 'info_connection_heroku.db'
     identificator = request.cookies.get('conn_1')
@@ -252,8 +268,6 @@ def f_connection_info(action, res=1):  #res=1 because of '/send'
 
     conn = sqlite3.connect(file_name)
     cursor = conn.cursor()
-
-    print(date_time, identificator, date_time, remoute_addr, action)
 
     cursor.execute("CREATE TABLE IF NOT EXISTS heroku_actions\
                    (contact_id INTEGER PRIMARY KEY AUTOINCREMENT, identificator VARCHAR(30),\
@@ -271,14 +285,17 @@ def f_get_data_order(identity_table):
     conn = sqlite3.connect('orders.db')
     cur = conn.cursor()
     quary = "SELECT * FROM {table}"
-    data_order = [i[1:] for i in cur.execute(quary.format(table=identity_table))]  # code INTEGER PRIMARY KEY AUTOINCREMENT
-    conn.close()
+    try:
+        data_order = [i[1:] for i in cur.execute(quary.format(table=identity_table))]  # code INTEGER PRIMARY KEY AUTOINCREMENT
+    except sqlite3.OperationalError:
+        return []
+    finally:
+        conn.close()
     return  data_order
 
 # keyhole
 @app.route('/keyhole')
 def keyhole():
-
     transm = f_transmissing_info_db()  # transmissing 'info_connection_heroku.db' to FTP-SERVER
 
     clue = request.args.get(helpic.statistic)
@@ -322,6 +339,7 @@ def index():
     time_ftp_check = f_get_time_ftp_check()                                  # time last connection to FTP-Server
     data, base_update, message_update, set_radiobuttons, set_radiobuttons_full = f_load_db() # loading data from 'base_factory.db'
     l_columns, data_for_row, data_for_row_order = f_creating_columns(set_radiobuttons, data)     # creating data with filtered columns
+
     # flash-messege about 'base_update'
     messege_ost     = 'Ostatky was successfully updated on {}.'.format(base_update)
     flash('{} We have used cookies for your identification.'.format(messege_ost))
@@ -353,7 +371,7 @@ def partner_info():
     action = 'partner_info'
     res = send_file('partner_info.docx', as_attachment=True)
     res = f_identificator(res)  # setting cookies for NEW GUESTS
-    return f_connection_info(res, action) if statistic_flag else res
+    return f_connection_info(action, res) if statistic_flag else res
 
 @app.route('/partner_info_eliton')
 def partner_info_eliton():
@@ -382,13 +400,13 @@ def send():
     address_to = request.form.getlist('address_to')
     identity = request.cookies.get('conn_1')  # current user
 
-    if not identity:                   # protection against missing cookies
+    if not identity or request.method == "GET":                   # protection against missing cookies
         return redirect('/')
 
     identity_table = 'order_' + identity
 
     if request.method == "POST" and address_to:
-        castomer = request.form.getlist('castomer')
+        customer = request.form.getlist('customer')
         comment  = request.form.getlist('comment')
         action = 'send_order'
         greeting = 'Hello FRIEND! I am HEROKU and I have found an ORDER!'
@@ -396,6 +414,8 @@ def send():
         l_text_order = []
         # (14990, 'Козырёк водоотливной', 'ВК42 Козырёк водоотливной', 10, 219.96, 182.52, 182.52, 186.96, 0, 1)
         data_order = f_get_data_order(identity_table)
+        if not data_order:
+            return redirect('/')
 
         counter = 1
         for i in data_order:
@@ -406,7 +426,7 @@ def send():
 
         text_warning = 'DO NOT REPLY to this address. I am a BOT.'  + '\n'
         text_order    = '- ' * 10 + 'ORDER'     + '- ' * 10 + '\n' + '\n'.join(l_text_order) + '\n'
-        text_castomer = '- ' * 9  + 'CASTOMER ' + '- ' * 9 +  '\n' + castomer[0] + '\n'
+        text_castomer = '- ' * 9  + 'CASTOMER ' + '- ' * 9 +  '\n' + customer[0] + '\n'
         text_email    = '- ' * 10 + 'E-MAIL '   + '- ' * 9 +  '\n' + address_to[0] + '\n'
         text_comment  = '- ' * 10 + 'COMMENT'   + '- ' * 9 +  '\n' + comment[0]
 
@@ -435,8 +455,8 @@ def send():
         conn.commit()
         conn.close()
 
-    if statistic_flag:
-        f_connection_info(action)
+        if statistic_flag:
+            f_connection_info(action)
 
     return redirect('/')
 
@@ -444,6 +464,8 @@ def send():
 def groups():
     global l_columns_full
     time_ftp_check = f_get_time_ftp_check()   # time last connection to FTP-Server
+
+    sum_customer_order = ''
 
     # Database 'orders.db' creating TABLES
     identity = request.cookies.get('conn_1')  # current user
@@ -492,6 +514,7 @@ def groups():
         item_delete       = request.form.getlist('delete')     # deleting from 'l_orders'
         item_new_quantity = request.form.getlist('order')      # getting 'new_quantity'item for changing the quantity of orders in 'data_order'
         confirmation      = request.form.getlist('confirm')    # getting 'confirm'
+        cost              = request.form.getlist('cost')       # getting 'cost'
 
         #  column 'Code' must be oh the screen
         set_radiobuttons = set_radiobuttons if 'Code' in set_radiobuttons else ['Code'] + set_radiobuttons
@@ -565,11 +588,27 @@ def groups():
                     conn.close()
                     break
 
+        if cost:
+            action = 'cost'
+            l_order = [(a[2], b) for a, b in zip(data_order, item_new_quantity)]
+            sum = 0
+            for i in l_order:
+                conn = sqlite3.connect('orders.db')
+                cur = conn.cursor()
+                quary = "SELECT price FROM {table} WHERE name='{name}'"
+                cur.execute(quary.format(table=identity_table, name=i[0] ))
+                res = cur.fetchone()[0]
+                sum += float(res)*int(i[1])
+
+            conn.close()
+            sum_customer_order = round(sum, 2)
+
+
         l_columns, data_for_row, data_for_row_order = f_creating_columns(set_radiobuttons, data, identity_table, item_new_quantity)  # creating data with filtered columns
 
         res = make_response(render_template('index.html', items=data_for_row, base_update=base_update, time_ftp_check=time_ftp_check, \
                             set_radiobuttons=set_radiobuttons, set_radiobuttons_full=set_radiobuttons_full, \
-                            l_columns_full=l_columns_full, l_columns=l_columns, l_order=data_for_row_order))
+                            l_columns_full=l_columns_full, l_columns=l_columns, l_order=data_for_row_order, sum_order=sum_customer_order))
         return f_connection_info(action, res) if statistic_flag else res
 
 # DOWNLOAD price.zip from SECOND FTP-Server

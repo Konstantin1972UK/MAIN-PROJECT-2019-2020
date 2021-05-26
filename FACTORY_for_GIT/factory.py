@@ -85,14 +85,16 @@ def f_about():
                4.3.  "двойной щелчек правой кнопки 'мыши'":
                   - остаток (изменяет остатки предыдущего выпуска)
                   - запуск  (изменяет 'расчитанный' запуск)  
-             4. Shtribs ("нижний првый блок")
+             5. Shtribs ("нижний првый блок")
                выводит ширину и длину штрибсов для изготовления партии запуска.
+             6. 'PUT M'   - записывает в текст для публикации на сайте, при следующем соидинении.
+                'CHECK M' - проверяет какой текст записан и передается.
              
               Don't throw the slippers!!!
               Good luck!
          
               Kostiantyn Sh
-              August_2019 - August_2020'
+              August_2019 - March_2020'
              """)
 
 def f_oboroty():
@@ -849,6 +851,7 @@ def f_save_zapusk(event, item_product, ent_zapusk, zapusk, tree_place_zapusk, k_
 
                     f_rasschet(event, *args[0], focus_item=focus_item)
 
+
         except ValueError:
             showinfo('WRONG number', '{:^30}\n{:^30}\n{:^30}'.format('Only', 'NUMBERS', 'are alowed'))
 
@@ -1468,7 +1471,7 @@ def f_delete_item_screen_rasschet(event, f1, f2, f3, f4, f5, f6):
             del d_ostatky_copy_screen[key]
             focus_item = list(filter(lambda x: x[1] == item_del['text'] , l_position))[0][0]   #position 'deleting item'
             focus_item = focus_item if focus_item < len(l_position) - 1 else  -1   # for 'deleting' last row
-            f_rasschet(event, f1, f2, f3, f4, f5, f6, focus_item=focus_item)
+            f_rasschet_func(f1, f2, f3, f4, f5, f6, focus_item=focus_item)
             break
 
 def f_ostatky_kharkov():
@@ -2441,12 +2444,13 @@ def f_open_rasschet():
 # creating table for RASSCHET
 def f_rasschet(event, ent_length_shtribs, ent_count_rasschet, label_rasschet_product, ent_zapusk_shtribs, label_zapusk_need_length,\
                label_zapusk_1_length, focus_item=0):
+
     f_rasschet_func(ent_length_shtribs, ent_count_rasschet, label_rasschet_product, ent_zapusk_shtribs,
-                    label_zapusk_need_length,label_zapusk_1_length, focus_item=0)
+                    label_zapusk_need_length,label_zapusk_1_length, focus_item)
 
 
 def f_rasschet_func(ent_length_shtribs, ent_count_rasschet, label_rasschet_product, ent_zapusk_shtribs, label_zapusk_need_length,\
-               label_zapusk_1_length, focus_item=0):
+               label_zapusk_1_length, focus_item):
     global d_ostatky, d_karta_detaley, d_zayavka, tree_screen_rasschet, l_for_save, d_ostatky_copy_screen, l_position
 
     ent_zapusk_shtribs = 0 if not ent_zapusk_shtribs else int(ent_zapusk_shtribs)
@@ -2510,6 +2514,9 @@ def f_rasschet_func(ent_length_shtribs, ent_count_rasschet, label_rasschet_produ
                 d_zapusk_shtribs[i[1]] = [shtribs, length, width, x, y, i[2], i[3], zayavka, ostatok, product, percent_before, percent_tmp, zapusk]
 
         while zapusk_1_length < int(ent_zapusk_shtribs) * 1000:
+            if len(d_zapusk_shtribs) == 0:   # preventing doing next code if table is EMPTY
+                print("No items for calculation......")
+                return 1
             item_min = min(d_zapusk_shtribs, key=lambda x: d_zapusk_shtribs[x][11])    # key=lambda x    =  percent_tmp
             l_tmp = d_zapusk_shtribs[item_min]
             l_tmp[12] += int(l_tmp[4])                                      # zapusk # l_tmp[4] = y
@@ -2699,21 +2706,25 @@ def f_statistica():
     # getting info from files like 'info_connection_heroku_20210223141959182592.db'
     l_files_local = [i for i in os.listdir() if i.startswith('info_connection_heroku')]
     for file_name_local in l_files_local:
-
         conn_1 = sqlite3.connect(file_name_local)
         cursor_1 = conn_1.cursor()
-        data_new = cursor_1.execute("SELECT * FROM heroku_actions")
-        data_new = data_new.fetchall()
-        conn_1.close()
-
-        for i in data_new:
-            if i[2] not in data_new_all:
-                print("New record ", i[2], '===', i)
-                data_new_all [i[2]] = [i]
+        try:
+            data_new = cursor_1.execute("SELECT * FROM heroku_actions")
+            data_new = data_new.fetchall()
+            conn_1.close()
+            for i in data_new:
+                if i[2] not in data_new_all and  i[3]!='127.0.0.1':  # '127.0.0.1' - localhost for testing
+                    # New record 2021 - 05 - 21 11: 06:32: 540600 === (2644, '20210217103455624309', '2021-05-21 11:06:32:540600', '127.0.0.1', 'index_page')
+                    print("New record ", i[2], '===', i)
+                    data_new_all [i[2]] = [i]
+        except sqlite3.DatabaseError:
+            print('This db is broken: {}'.format(file_name_local))
+            continue
 
     # add NEW info
     print("Rewriting new info in 'info_connection.db'")
-    data_for_db = [i for i in data_new_all.values()]
+    #[(2644, '20210217103455624309', '2021-05-21 11:06:32:540600', '127.0.0.1', 'index_page')]
+    data_for_db = [i for i in data_new_all.values() if i[0][1]]       # preventing None === (0, None, None, None, None)
     data_for_db.sort(key=lambda x: x[0][2])
     conn = sqlite3.connect('info_connection.db')
     cursor = conn.cursor()

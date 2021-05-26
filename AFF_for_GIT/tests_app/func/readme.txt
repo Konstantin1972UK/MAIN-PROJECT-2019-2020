@@ -1,0 +1,77 @@
+test_front_end
+ - test_cart.py
+    -- test_cart_buttons                         -- "'Cart' and 'Delete' buttons"
+    -- test_cart_text_h4                         -- "'CASTOMER ORDER' on the page"
+    -- test_cart_add_five_items_del_one          -- "ADD FIVE items in the CART and DELETE ONE"
+    -- test_button_COST                          -- "button COST"
+ - test_confirm.py
+    -- test_confirm_text_h4                      -- "text ['ORDER', 'COMMENTS'] on the CONFIRMATION page"
+    -- test_confirm_input                        -- "'input' ['customer', 'address_to'] on the CONFIRMATION page"
+    -- test_confirm_columns                      -- "columns ['Item', 'Order'] on the CONFIRMATION page"
+    -- test_confirm_button_send                  -- "button ['SEND ORDER'] on the CONFIRMATION page"
+    -- test_confirm_textarea                     -- "textarea ['comment'] on the CONFIRMATION page"
+    -- test_confirm_send_order_status_code       -- "send ORDER from the CONFIRMATION page. status_code"
+    -- test_confirm_send_order_flash             -- "send ORDER from the CONFIRMATION page. flash"
+ - test_content_main_page.py
+    -- test_content_main_page_title              -- "'title' on the MAIN page"
+    -- test_content_main_page_buttons            -- "buttons ['SEND ORDER'] on the MAIN page"
+    -- test_content_main_page_anchors            -- "anchors on the MAIN page"
+    -- test_content_main_page_checkboxes         -- "checkboxes on the MAIN page"
+    -- test_content_main_page_checkboxes_checked -- "checkboxes 'checked' on the MAIN page"
+ -  test_content_map_page.py
+    -- test_content_map_page_title                -- "'title' on the MAP page"
+    -- test_content_map_page_text_p               -- "text '<p></p>' on the MAP page"
+    -- test_content_map_page_text_h2              -- "text '<h2></h2>' on the MAP page"
+    -- test_content_map_page_text_h4              -- "text '<h4></h4>' on the MAP page"
+    -- test_content_map_page_text_map             -- "'GOOGLE map' on the MAP page"
+    -- test_content_map_page_text_map_available   -- "'GOOGLE map' is available on the MAP page"
+ - test_content_partner_page.py
+    -- test_content_partner_page_title            -- "'title' on the PARTNER page"
+    -- test_content_partner_page_text_p           -- "text '<p></p>' on the PARTNER page"
+    -- test_content_partner_page_text_h2          -- "text '<h2></h2>' on the PARTNER page"
+    -- test_content_partner_page_text_li          -- "text '<li></li>' on the PARTNER page"
+ -  test_groups_page.py
+    -- test_get_groups_page                       -- "get '/groups' without cookies"
+    -- test_get_groups_page_cookies               -- "get '/groups' with cookies"
+    -- test_get_groups_page_cookies_quantity      -- "get '/groups'. only ONE cookies is set"
+    -- test_get_groups_page_cookies_name          -- "get '/groups'. name 'conn_1'  cookie"
+    -- test_get_groups_page_checkbox_default      -- "get '/groups'. 'checkbox' DEFAULT"
+    -- test_get_groups_page_columns_default       -- "get '/groups'. 'columns' DEFAULT"
+    -- test_get_groups_page_items_default         -- "get '/groups'. Items display in TABLE"
+    -- test_post_groups_page                      -- "post 'empty' '/groups' without cookies"
+    -- test_post_groups_page_cookies              -- "post 'empty' '/groups' with cookies"
+    -- test_post_groups_page_checkbox_variant     -- "post checkbox variants with cookies"
+ - test_navigation.py
+    -- test_open_main_page                        -- "Open the MAIN page '/' "
+    -- test_open_main_page_groups                 -- "Open the MAIN page '/groups' "
+    -- test_open_map_page                         -- "Open the MAP page '/map' "
+    -- test_open_partners_page                    -- "Open the PARTNERS page '/partners' "
+    -- test_download_catalog                      -- "Download 'CATALOG' '/catalog' "
+    -- test_download_price                        -- "Download 'Price' '/price' "
+    -- test_download_ostatky                      -- "Download  OSTATKY '/ostatkyxls' "
+    -- test_download_catalog_link                 -- "link to 'https://mega.nz/folder/qxknFQhB#31uULMJB8IP9QZ0cLtIcww' "
+    -- test_statistic                             -- "Download  STAISTIC '/keyhole'"
+ - test_send_get_post.py
+    -- test_send_get                              -- "get '/send' without cookies"
+    -- test_send_get_cookies                      -- "get  '/send' with cookies"
+    -- test_send_post                             -- "post 'empty' data '/send' without cookies"
+    -- test_send_post_cookies                     -- "post 'empty' data '/send' with cookies"
+
+test_back_end
+ - test_f_creating_columns.py
+    -- test_f_creating_columns                    -- "creating columns for table"
+ - test_f_get_db.py
+    -- test_f_get_db                              -- "updating 'base_factory.db' from FTP-Server.Normal."
+    -- test_f_get_db_1                            -- "updating 'base_factory.db' from FTP-Server. Can not find directory at FTP-Server."
+    -- test_f_get_db_2                            -- "updating 'base_factory.db' from FTP-Server. Can not find 'base_factory.db' in directory"
+ - test_f_transmissing_info_db.py
+    -- test_f_transmissing_info_db_normal         -- "NORMAL work"
+    -- test_f_transmissing_info_db_wrong_dir      -- "existng directory 'helpic.directory_ftp"
+    -- test_f_transmissing_info_db_no_file        -- "existng file 'info_connection_heroku.db' on HEROKU"
+ - test_functions.py
+    -- test_connection_ftp_server_normal          -- "connection to FTP-Server"
+    -- test_f_get_date_time_now                   -- "getting date.time.now"
+    -- test_f_get_time_ftp_check                  -- "time last connection to FTP-Server"
+    -- test_f_load_db                             -- "loading data from 'base_factory.db'"
+
+

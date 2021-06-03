@@ -49,9 +49,11 @@ d_dubli_ip54 = dd.d_dubli_ip54
 
 def f_close(event):
     f_exit()
+    return 0
 
 def f_exit():
     root.destroy()
+    return 0
 
 # Menu File/About
 def f_about():
@@ -94,8 +96,9 @@ def f_about():
               Good luck!
          
               Kostiantyn Sh
-              August_2019 - March_2020'
+              August_2019 - March_2021'
              """)
+    return 0
 
 def f_oboroty():
     global data_tovari, d_ostatky, d_original
@@ -217,6 +220,7 @@ def f_oboroty():
 
     print("\033[0m 'd_oboroty' for ALL SCLAD's is created \033[32m{: .5f} seconds \033[0m".format(monotonic()-start))
     label_period_product.configure(text='ПРОДАЖИ: {}  {}'.format(start_product_text, finish_product_text))
+    return 0
 
 # # adding '' for columns product, store, zapusk
 def f_add_pr_st_zapusk():
@@ -287,6 +291,8 @@ def f_add_pr_st_zapusk():
     # for checking d_ostatky #
     # for i in d_ostatky:
     #     print(i, d_ostatky[i])
+
+    return 0
 
 # creating table 'tree_info' - MAIN TABLE
 def f_table_tree_inf():
@@ -440,6 +446,7 @@ def f_table_tree_inf():
                                     values=(quantity_mk, quantity_ceh, ostatok_ceh, product, ostatok, oboroty, zayavka, rezerv, zapusk),
                                     tags='zayavka')
                 counter_row += 1
+    return 0
 
 # rewrihting "ЗАПАС/"
 def f_store_ent(event):                       # for 'ent_count'
@@ -582,17 +589,17 @@ def f_store():             # for 'btn_count'
 
         btn_count.configure(text='ПРОДАЖИ /{}'.format(divisior))
 
-def f_shift_year(data):
+    return 0
+
+def f_shift_year(data):     # -2000 from year
     data = data.strftime("%Y-%m-%d %H:%M:%S")
     year = int(data[:4]) - 2000
     return str(year) + data[4:]
 
 # common window for product, zayavka, rezerv
 def f_win(win_title, tuple_columns, tree_place):
-    # full tuple columns ['Дата', 'Контрагент', 'К-во', 'Производство' , 'Примечание']
     item_win = tree_place.item(tree_place.selection())
     item_text = item_win['text']
-
     # window PRODUCT
     window = Toplevel(root, bg='lightblue', bd=5, relief=SUNKEN)
     window.title(win_title)
@@ -626,6 +633,7 @@ def f_win(win_title, tuple_columns, tree_place):
     tree_window.grid(row=2, column=0)
     # 'Производство'
     if win_title == 'Производство':
+        print(2, win_title, tuple_columns, tree_place)
         # data = [[[datetime.datetime(4020, 1, 14, 10, 29, 31), '00000000235', None, Decimal('8'), 0], []]]
         data = d_union_sel.get(item_text, None)
 
@@ -642,9 +650,10 @@ def f_win(win_title, tuple_columns, tree_place):
                     data_win = f_shift_year(vipuski[0])    # shift -2000 years
                     tree_window.insert(folder, counter, text=vipuski[1], values=(data_win, '', vipuski[3]))
                     counter += 1
-        except TypeError:
+        except TypeError as e:
             window.destroy()  # close product_window
             return None
+
     # 'Заявка'
     elif win_title == 'Заявка':
         l_zayavka_sel = []
@@ -689,6 +698,7 @@ def f_win(win_title, tuple_columns, tree_place):
             window.destroy()  # close rezerv_window
     window.focus()
     window.bind('<Escape>',lambda x: window.destroy())
+    return 0
 
 # function depends on radiobutton
 def f_double_click_inf(event):
@@ -714,7 +724,6 @@ def f_double_click_middle(event):
     elif var.get() == 4:
         # f_win_quantity()
         f_win_zapusk(tree_middle, k_var)
-
 
 def f_double_click_bottom(event):
     k_var = var.get()  # for several variants on the 'table'
@@ -796,7 +805,6 @@ def f_win_zapusk(tree_place_zapusk, k_var, *args):            # WINDOW for chang
 
     but_zapusk.bind('<Button-1>', lambda event, f1=item_product, f2=ent_zapusk, f3=zapusk, f4=tree_place_zapusk, f5=k_var, f6=args: f_save_zapusk(event, f1, f2, f3, f4, f5, f6))
     ent_zapusk.bind('<Return>',   lambda event, f1=item_product, f2=ent_zapusk, f3=zapusk, f4=tree_place_zapusk, f5=k_var, f6=args: f_save_zapusk(event, f1, f2, f3, f4, f5, f6))
-
 
 def f_save_zapusk(event, item_product, ent_zapusk, zapusk, tree_place_zapusk, k_var, *args):
 
@@ -917,11 +925,10 @@ def f_win_specif(tree_place):
     else:
         showinfo('Ошибка', '{:^20}\n{:^20}\n{:^20}'.format('СПЕЦИФИКАЦИЯ для', item_text, 'ОТСУТСТВУЕТ'))
 
-
-
 def f_zagotovka_zapusk():
     f_zagotovka_creation() # creation dictionary 'd_zagotovka'
     f_zagotovka()          # creation table 'tree_bottom'
+    return 0
 
 
 def f_zagotovka_creation():
@@ -1219,6 +1226,7 @@ def f_load_delta():
     with open('ostatky_kharkov.pkl', 'rb') as f:
         data =  pickle.load(f)
         d_ostatky_kharkov = data
+    return 0
 
 def f_delete_item(event):
     global d_zagotovka
@@ -1306,6 +1314,7 @@ def f_open_screen():
     tree_screen.bind('<Delete>', f_delete_item_screen)
 
     f_view_screen()  # creating table SCREEN
+
 
 # Bottom on screen
 def f_view_screen():
@@ -1405,6 +1414,7 @@ def f_save_store():
 
     btn_save_store.bind('<Button-1>', f_save_store_to)
     ent_save_store.bind('<Return>', f_save_store_to)
+    return 0
 
 def f_save_store_to(event):
     global save_store, ent_save_store, d_saved_zapusk
@@ -1419,6 +1429,7 @@ def f_save_store_to(event):
 
     previous_zapusk()
     save_store.destroy() # # close window = 'save_store'
+    return 0
 
 def previous_zapusk():
     global d_saved_zapusk
@@ -1438,12 +1449,14 @@ def previous_zapusk():
     counter = 1
     for i in d_saved_zapusk:
         tree_store.insert('', counter, text=i, values=(d_saved_zapusk[i][0]))
+    return 0
 
 def f_input(event):
     global d_selected
     item = tree_store.item(tree_store.selection())
     d_selected = d_saved_zapusk.get(item['text'], None)[1]
     f_table_middle()
+
 
 def f_delete_item_store(event):
     global d_saved_zapusk
@@ -1498,6 +1511,7 @@ def f_ostatky_kharkov():
     tree_kharkov.bind('<Double-Button-1>', f_input_kharkov)
     tree_kharkov.bind('<Return>', f_input_kharkov)
     tree_kharkov.bind('<Delete>', f_delete_item_kharkov)
+    return 0
 
 def f_delete_item_kharkov(event):
     global tree_kharkov, ostatky_kharkov
@@ -1845,6 +1859,7 @@ def f_connection():
         cnxn.close()
         flag_base_factory = True     # 'flag_base_factory=False' for preventing rewriting 'base_factory.db' after WRONG connection to SQL-1C-BASE
         print('Connection to SERVER is CLOSED ................')
+        return 0
 
     except:
         print('Can not connect ...............')
@@ -1856,7 +1871,7 @@ def f_connection():
         data_shtribs = []
         data_zayavka = []
         data_rezerv = []
-
+        return 1
 
 def f_nezavershonnie_naryadi():
     # NARYADI
@@ -1943,6 +1958,7 @@ def f_nezavershonnie_naryadi():
                     d_union_sel[i] +=  [[nar+[sum], vip]] # summa all vipusks in naryad
     # print(2, monotonic() - start_2)
     print("\033[0m 'd_union_sel' is completed......... \033[32m {:.5f} seconds \033[0m ".format(monotonic() - start))
+    return 0
 
 def f_ostatky_product():
 
@@ -2048,6 +2064,7 @@ def f_ostatky_ceh_mk():
             print("'Exception' with {}".format(d_original[i][0]))
 
     print("\033[0m 'd_ostatky' is created\033[32m{: .5f} seconds \033[0m".format(monotonic()-start))
+    return 0
 
 def f_refresh():
     global d_ostatky, d_naryad, d_vipusk, d_union_sel, text_refresh
@@ -2070,6 +2087,7 @@ def f_refresh():
     btn_refresh.config(text=text_refresh)  # date/time last syncronization with 1Cserver
 
     print('Syncronization with 1C is finished')
+    return 0
 
 def f_shtribs():
     global data_shtribs
@@ -2106,6 +2124,7 @@ def f_shtribs():
     for i in l_data_shtribs:
         tree_shtribs.insert('', counter, text=i[0], values=(i[1], i[2], i[3]))
         counter += 1
+    return 0
 
 def f_zayavka():
     global d_zayavka, data_zayavka
@@ -2127,9 +2146,11 @@ def f_zayavka():
     # for checking 'd_zayavka'
     # for i in d_zayavka:
     #     print(i, d_zayavka[i])
+    return 0
 
 def f_rezerv():
     global d_rezerv, data_rezerv
+
     d_rezerv = {}
     # 'data_rezerv'
     # (datetime.datetime(4019, 9, 2, 8, 20), 'Елетон Електрощитовий завод', 'МКН 1283М IP31', Decimal('1.00'), '00000007821')
@@ -2148,6 +2169,7 @@ def f_rezerv():
     # for checking 'd_rezerv'
     # for i in d_rezerv:
     #     print(i, d_rezerv[i])
+    return 0
 
 def f_report():   # start and end work, dinner time
     engine = pyttsx3.init()
@@ -2187,6 +2209,7 @@ def f_report():   # start and end work, dinner time
        engine.say('Пора домой, рабочий день окончен', 'report_finish')
 
     engine.runAndWait()
+    return 0
 
 def f_create_db():
     global flag_base_factory, d_ostatky
@@ -2327,6 +2350,7 @@ def f_create_db():
     # time_modification = 'base_factoty.db' last modification
     root.title("FACTORY (Release 1_0_March_2021)  'base_factory.db' was sent to FTP-Server at {}".format(time_modification))  # MAIN TITLE
     print("\033[0m 'base_factory.db' was uploaded on FTP-SERVER.  \033[32m {:.5f} seconds \033[0m ".format(monotonic() - start))
+    return 0
 
 def f_open_rasschet():
     global tree_screen_rasschet , fra_rasschet, d_ostatky_copy_screen
@@ -2627,9 +2651,9 @@ def f_ostatky_shtribs(event, ent_length_shtribs, ent_count_rasschet, label_rassc
         f_rasschet_func(ent_length_shtribs, ent_count_rasschet, label_rasschet_product, ent_zapusk_shtribs,
                     label_zapusk_need_length,label_zapusk_1_length, focus_item=0)
 
-
 def f_karta_detaley():
     global d_karta_detaley, data_karta_detaley, d_original, d_original
+
     # d_original = {'00000013791': ['ЕР 16104/2В', 'ЕР '],
     #                            width             length          shtribs             X             Y           place             code              nomenklatura
     # data_karta_detaley = (Decimal('329.00'), Decimal('1113.00'), Decimal('329'), Decimal('1'), Decimal('1'), 'хр          ', '00000011317', 'ОВ653М.Обечайка верхняя.Д')
@@ -2651,6 +2675,7 @@ def f_karta_detaley():
                 x            = str(i[3]) if i[3] else ''
                 y            = str(i[4]) if i[4] else ''
                 d_karta_detaley[nomenklatura] = [place,  width, length,  shtribs, x, y]
+    return 0
 
 # statistik for eleton.herokuapp.com
 def f_statistica():
@@ -2799,6 +2824,7 @@ def f_statistica():
         return 2
 
     print("\033[0m 'statistic.xlsx' was updated from FTP-SERVER.  \033[32m {:.5f} seconds \033[0m ".format(monotonic() - start))
+    return 0
 
 # BUTTON 'СTАТИСТИКА'
 def f_heroku():
@@ -2809,6 +2835,7 @@ def f_heroku():
 # Field MESSAGE
 def f_message_check():
     if os.path.exists("base_factory.db"):
+        print('if os.path.exists("base_factory.db"):')
         try:
             conn = sqlite3.connect("base_factory.db")
             cursor = conn.cursor()
@@ -2823,9 +2850,10 @@ def f_message_check():
         except Exception as e:
             print("f_message_check(). Can not GET check new MESSAGE from 'base_factory.db'")
             print(e)
+            return 1
         return 0
     print("f_message_check(). Can not check new MESSAGE from 'base_factory.db'")
-    return 1
+    return 0
 
 # button MESSAGE
 def f_message_put():
@@ -2837,6 +2865,7 @@ def f_message_put():
         conn.commit()
         conn.close()
     print("f_message_put(). Can not put new MESSAGE to 'base_factory.db'")
+    return 0
 
 # for WORK and DEMO versions
 def f_main():
@@ -2849,6 +2878,7 @@ def f_main():
         f_zayavka()                    # creating 'd_zayavka' = zayavki pokupateley
         f_rezerv()                     # creating 'd_rezerv' = rezetvi pokupateley
         f_add_pr_st_zapusk()           # adding info from 'd_union_sel' to 'd_ostatky'
+        return 0
 
     else:                              # for DEMO version ONLY
         print('Trying to represent DEMO-version')
@@ -2862,7 +2892,7 @@ def f_main():
         root.title('!!! DEMO. It is only DEMO version !!!')
 
         showinfo('DEMO', 'It is only DEMO version')
-    return 2
+    return 0
 
 # common traces for BUTTONs
 class MyButton(Button):
@@ -2898,218 +2928,221 @@ class MyLabelFrame(LabelFrame):
         self['pady'] = 5
         self['bd'] = 5
 
-root = Tk()
-# root.title("FACTORY")
-root.geometry('1950x900')
+if __name__ == '__main__':
+    root = Tk()
+    # root.title("FACTORY")
+    root.geometry('1950x900')
 
-m = Menu()
-root.config(menu=m)
-fm = Menu(m, fg='green', font='arial 10')
+    m = Menu()
+    root.config(menu=m)
+    fm = Menu(m, fg='green', font='arial 10')
 
-m.add_cascade(label='File', menu=fm)
-fm.add_command(label='About', command=f_about)
-fm.add_command(label='Exit', command=f_exit)
+    m.add_cascade(label='File', menu=fm)
+    fm.add_command(label='About', command=f_about)
+    fm.add_command(label='Exit', command=f_exit)
 
-btn_count = MyButton(root, text='Рассчет', command=f_store)
-label_period_product = MyLabel(root, text='ПРОДАЖИ:{} - {}')
+    btn_count = MyButton(root, text='Рассчет', command=f_store)
+    label_period_product = MyLabel(root, text='ПРОДАЖИ:{} - {}')
 
-var = IntVar()
-var.set(3)
-rad_zayavka        = Radiobutton(root, text='Заявка', variable=var, value=9)
-rad_rezerv         = Radiobutton(root, text='Резерв', variable=var, value=10)
-rad_ostatok_ceh    = Radiobutton(root, text='Остаток Цех', variable=var, value=11)
-rad_product        = Radiobutton(root, text='Производство', variable=var, value=1)
-rad_specif_inf     = Radiobutton(root, text='Спецификация', variable=var, value=2)
-rad_zapusk_inf     = Radiobutton(root, text='Запуск', variable=var, value=3)
-rad_quantity       = Radiobutton(root, text='Колличество', variable=var, value=4)
-rad_specif_middle  = Radiobutton(root, text='Спецификация', variable=var, value=5)
-rad_ostatok_bottom = Radiobutton(root, text='Остаток Цех', variable=var, value=6)
-rad_zapusk_bottom  = Radiobutton(root, text='Запуск', variable=var, value=7)
-rad_product_bottom = Radiobutton(root, text='Производство', variable=var, value=8)
-
-
-btn_zagotovka = MyButton(root, text='Заготовка', command=f_zagotovka_zapusk)
-
-ent_count = Entry(root, width=2, font='arial 12', relief=SUNKEN, bd=2)
-ent_count.focus()                    # focus for first view
-ent_count.focus_set()                # focus for typing
-ent_count.bind('<Return>', f_store_ent)
-
-fra_top   = MyLabelFrame(root, width= 900, height=300, text='Information for MASTER', bg='lightgreen', padx=5, pady=5, relief=RAISED, bd=5)
-
-fra_middle     = MyLabelFrame(root, width= 900, height=300, text='Selected items', bg='lightblue')
-fra_store      = MyLabelFrame(root, width= 300, height=300, text='Previous zapusk', bg='lightblue')
-fra_bottom     = MyLabelFrame(root, width= 1700, height=300, text='Production', bg='bisque')
-btn_file       = MyButton(root, text='Сохранить в файл', command=f_save_file)
-btn_delta      = MyButton(root, text='Сохранить DELTA', command=f_save_delta)
-btn_screen     = MyButton(root, text='SCREEN', command=f_open_screen)
-btn_save_store = MyButton(root, text='Сохранить', command=f_save_store)
-btn_kharkov    = MyButton(root, text='Остатки Харьков', command=f_ostatky_kharkov)
-
-fra_shtribs  = MyLabelFrame(root, width= 300, height=300, text='Shtribs', bg='bisque')
-btn_product  = MyButton(root, text='ПРОИЗВОДСТВО', command=f_ostatky_product)
-btn_refresh  = MyButton(root, text=text_refresh, command=f_refresh)
-btn_shtribs  = MyButton(root, text='ШТРИБСЫ', command=f_shtribs)
-btn_rasschet = MyButton(root, text='РАССЧЕТ', command=f_open_rasschet)
-btn_report   = MyButton(root, text='ДОКЛАД', command=f_report)
-btn_heroku   = MyButton(root, text='СTАТИСТИКА', command=f_heroku)
-btn_message_put  = MyButton(root, text='M PUT', command=f_message_put)
-
-text_message = Text(root, width=70, height=2, font='arial 12', relief=SUNKEN, bd=2)
-try:
-    f_message_check()
-except sqlite3.OperationalError:
-    print ("Can not find table 'prices_info'. Can not put TEXT in field ")
-
-btn_message_check  = MyButton(root, text='M CHECK', command=f_message_check)
-
-#Fonts for tree_inf
-style = ttk.Style()
-style.configure('Treeview', font='arial 12')
-style.configure('Treeview.Heading', font='arial 12')
-
-#Tree_TOP
-tree_inf = ttk.Treeview(fra_top)
-tree_inf['column'] = ('склад М/к', 'склад Цех', 'Остаток Цех', 'Производство', 'Остаток', 'ПРОДАЖИ', 'Заявка', 'Резерв', 'ЗАПУСК')
-tree_inf.column('склад М/к', width=100,anchor='n')
-tree_inf.column('склад Цех', width=100,anchor='n')
-tree_inf.column('Остаток Цех', width=100,anchor='n')
-tree_inf.column('Производство', width=100,anchor='n')
-tree_inf.column('Остаток', width=100,anchor='n')
-tree_inf.column('ПРОДАЖИ', width=100,anchor='n')
-tree_inf.column('Заявка', width=100,anchor='n')
-tree_inf.column('Резерв', width=100,anchor='n')
-tree_inf.column('ЗАПУСК', width=100,anchor='n')
-tree_inf.heading('склад М/к',text='склад М/к')
-tree_inf.heading('склад Цех', text='склад Цех')
-tree_inf.heading('Остаток Цех', text='Остаток Цех')
-tree_inf.heading('Производство', text='Производство')
-tree_inf.heading('Остаток', text='Остаток')
-tree_inf.heading('ПРОДАЖИ', text='ПРОДАЖИ')
-tree_inf.heading('Заявка', text='Заявка')
-tree_inf.heading('Резерв', text='Резерв')
-tree_inf.heading('ЗАПУСК', text='ЗАПУСК')
-tree_inf.grid(row=1, column=0)
-
-# Tree MIDDLE
-tree_middle = ttk.Treeview(fra_middle)
-tree_middle['column'] = ('К-во')
-tree_middle.column('К-во', width=100,anchor='n')
-tree_middle.heading('К-во', text='К-во')
-tree_middle.grid(row=1, column=0)
-
-# Tree STORE
-tree_store = ttk.Treeview(fra_store)
-tree_store['column'] = ('Дата')
-tree_store.column('Дата', width=100,anchor='n')
-tree_store.heading('Дата', text='Дата')
-tree_store.grid(row=1, column=0)
-
-# Tree BOTTOM
-tree_bottom = ttk.Treeview(fra_bottom)
-tree_bottom['height'] = 20
-tree_bottom['column'] = ('ostatok_ceh', 'ostatok', 'Производство', 'need', 'delta', 'zapusk', 'width', 'long', 'shtribs', 'x', 'y', 'LONG','DELTA', 'zapusk_karta')
-tree_bottom.column('ostatok_ceh', width=120, anchor='n')
-tree_bottom.column('ostatok', width=80, anchor='n')
-tree_bottom.column('Производство', width=150, anchor='n')
-tree_bottom.column('need', width=80, anchor='n')
-tree_bottom.column('delta', width=80, anchor='n')
-tree_bottom.column('zapusk', width=80, anchor='n')
-tree_bottom.column('width', width=80, anchor='n')
-tree_bottom.column('long', width=80, anchor='n')
-tree_bottom.column('shtribs', width=80, anchor='n')
-tree_bottom.column('x', width=80, anchor='n')
-tree_bottom.column('y', width=80, anchor='n')
-tree_bottom.column('LONG', width=100, anchor='n')
-tree_bottom.column('DELTA', width=100, anchor='n')
-tree_bottom.column('zapusk_karta', width=100, anchor='n')
-tree_bottom.heading('ostatok_ceh', text='Цех')
-tree_bottom.heading('ostatok', text='Остаток Цех')
-tree_bottom.heading('Производство', text='Производство')
-tree_bottom.heading('need', text='НУЖНО')
-tree_bottom.heading('delta', text='ДЕЛЬТА')
-tree_bottom.heading('zapusk', text='ЗАПУСК')
-tree_bottom.heading('width', text='ширина')
-tree_bottom.heading('long', text='длина')
-tree_bottom.heading('shtribs', text='штрибс')
-tree_bottom.heading('x', text='x')
-tree_bottom.heading('y', text='y')
-tree_bottom.heading('LONG', text='ДЛИНА')
-tree_bottom.heading('DELTA', text='DELTA')
-tree_bottom.heading('zapusk_karta', text='Запуск_карта')
-tree_bottom.grid(row=1, column=0)
-
-tree_shtribs = ttk.Treeview(fra_shtribs)
-tree_shtribs['column'] = ('quantity')
-tree_shtribs.column('quantity', width=100, anchor='n')
-tree_shtribs.heading('quantity', text='Длина, м')
-tree_shtribs.grid(row=1, column=0)
-
-btn_refresh.grid(row=1, column=0, padx=5, pady=5, sticky='w')
-label_period_product.grid(row=1, column=1, padx=5, pady=5, sticky='w')
-btn_count.grid(row=1, column=2, padx=5, pady=5, sticky='e')
-ent_count.grid(row=1, column=3, padx=5, pady=5, sticky='w')
-btn_product.grid(row=1, column=4, padx=5, pady=5, sticky='w')
-btn_shtribs.grid(row=1, column=5, padx=5, pady=5, sticky='w')
-btn_rasschet.grid(row=1, column=6, padx=5, pady=5, sticky='w')
-# rad_ostatok_ceh.grid(row=2, column=0, padx=5, pady=5, sticky='w')
-rad_zayavka.grid(row=2, column=1, padx=5, pady=5, sticky='w')
-rad_rezerv.grid(row=2, column=2, padx=5, pady=5, sticky='w')
-rad_product.grid(row=2, column=3, padx=5, pady=5, sticky='w')
-rad_specif_inf.grid(row=2, column=4, padx=5, pady=5, sticky='w')
-rad_zapusk_inf.grid(row=2, column=5, padx=5, pady=5, sticky='w')
-rad_quantity.grid(row=2, column=6, padx=5, pady=5, sticky='e')
-rad_specif_middle.grid(row=2, column=7, padx=5, pady=5, sticky='e')
-fra_top.grid(row=3, column=0, columnspan=6, padx=5, pady=5)
-fra_middle.grid(row=3, column=6, columnspan=8, padx=5, pady=5, sticky='w')
-fra_store.grid(row=3, column=8, padx=5, pady=5, sticky='w')
-rad_ostatok_bottom.grid(row=4, column=0, padx=5, pady=5, sticky='w')
-rad_zapusk_bottom.grid(row=4, column=1, padx=5, pady=5, sticky='w')
-rad_product_bottom.grid(row=4, column=2, padx=5, pady=5, sticky='w')
-btn_file.grid(row=4, column=4, padx=5, pady=5, sticky='w')
-btn_delta.grid(row=4, column=4, padx=5, pady=5, sticky='w')
-btn_screen.grid(row=4, column=5, padx=5, pady=5, sticky='w')
-btn_zagotovka.grid(row=4, column=6, padx=5, pady=5, sticky='w')
-btn_save_store.grid(row=4, column=7, padx=5, pady=5, sticky='w')
-btn_kharkov.grid(row=4, column=8, padx=5, pady=5, sticky='w')
-fra_bottom.grid(row=5, column=0, columnspan=8, padx=5, pady=5, sticky='w')
-fra_shtribs.grid(row=5, column=8, padx=5, pady=5, sticky='w')
-btn_report.grid(row=6, column=0, padx=5, pady=5, sticky='w')
-btn_heroku.grid(row=6, column=1, padx=5, pady=5, sticky='w')
-btn_message_put.grid(row=6, column=2, padx=5, pady=5, sticky='w')
-text_message.grid(row=6, column=3, columnspan=7, padx=5, pady=5, sticky='w')
-btn_message_check.grid(row=6, column=7, padx=5, pady=5, sticky='w')
-
-# functions for start
-f_connection()              # SQL-quary to 1C
-f_main()                    # for 'WORK' and 'DEMO' versions
-
-f_load_delta()              # 'ostatky_kharkov.pkl' - load data
-f_table_tree_inf()          # creating MAIN TABLE // 'table_tree_inf'
-previous_zapusk()           # for loading data in table 'previous zapusk'
-f_create_db()               # rewriting 'base_factory.db' and sending to FTP-SERVER
-f_statistica()              # rewriting 'statistic.xls' from FTP-SERVER
+    var = IntVar()
+    var.set(3)
+    rad_zayavka        = Radiobutton(root, text='Заявка', variable=var, value=9)
+    rad_rezerv         = Radiobutton(root, text='Резерв', variable=var, value=10)
+    rad_ostatok_ceh    = Radiobutton(root, text='Остаток Цех', variable=var, value=11)
+    rad_product        = Radiobutton(root, text='Производство', variable=var, value=1)
+    rad_specif_inf     = Radiobutton(root, text='Спецификация', variable=var, value=2)
+    rad_zapusk_inf     = Radiobutton(root, text='Запуск', variable=var, value=3)
+    rad_quantity       = Radiobutton(root, text='Колличество', variable=var, value=4)
+    rad_specif_middle  = Radiobutton(root, text='Спецификация', variable=var, value=5)
+    rad_ostatok_bottom = Radiobutton(root, text='Остаток Цех', variable=var, value=6)
+    rad_zapusk_bottom  = Radiobutton(root, text='Запуск', variable=var, value=7)
+    rad_product_bottom = Radiobutton(root, text='Производство', variable=var, value=8)
 
 
-print('finish ........................')
+    btn_zagotovka = MyButton(root, text='Заготовка', command=f_zagotovka_zapusk)
 
-root.bind('<Control-z>', f_close)
-tree_inf.bind('<Double-Button-1>', f_double_click_inf)
-tree_inf.bind('<Return>', f_double_click_inf)
-tree_middle.bind('<Double-Button-1>', f_double_click_middle)
-tree_middle.bind('<Delete>', f_del_middle)
-tree_bottom.bind('<Double-Button-1>', f_double_click_bottom)
-tree_bottom.bind('<Delete>', f_delete_item)
-tree_store.bind('<Double-Button-1>', f_input)
-tree_store.bind('<Delete>', f_delete_item_store)
+    ent_count = Entry(root, width=2, font='arial 12', relief=SUNKEN, bd=2)
+    ent_count.focus()                    # focus for first view
+    ent_count.focus_set()                # focus for typing
+    ent_count.bind('<Return>', f_store_ent)
 
-# for table SCREEN
-var_screen = IntVar()
-var_screen.set(13)              # creating SCREEN table by default = ALL PRODUCTION
-var_screen_z = IntVar()
-var_screen_z.set(11)
+    fra_top   = MyLabelFrame(root, width= 900, height=300, text='Information for MASTER', bg='lightgreen', padx=5, pady=5, relief=RAISED, bd=5)
 
-root.mainloop()
+    fra_middle     = MyLabelFrame(root, width= 900, height=300, text='Selected items', bg='lightblue')
+    fra_store      = MyLabelFrame(root, width= 300, height=300, text='Previous zapusk', bg='lightblue')
+    fra_bottom     = MyLabelFrame(root, width= 1700, height=300, text='Production', bg='bisque')
+    btn_file       = MyButton(root, text='Сохранить в файл', command=f_save_file)
+    btn_delta      = MyButton(root, text='Сохранить DELTA', command=f_save_delta)
+    btn_screen     = MyButton(root, text='SCREEN', command=f_open_screen)
+    btn_save_store = MyButton(root, text='Сохранить', command=f_save_store)
+    btn_kharkov    = MyButton(root, text='Остатки Харьков', command=f_ostatky_kharkov)
+
+    fra_shtribs  = MyLabelFrame(root, width= 300, height=300, text='Shtribs', bg='bisque')
+    btn_product  = MyButton(root, text='ПРОИЗВОДСТВО', command=f_ostatky_product)
+    btn_refresh  = MyButton(root, text=text_refresh, command=f_refresh)
+    btn_shtribs  = MyButton(root, text='ШТРИБСЫ', command=f_shtribs)
+    btn_rasschet = MyButton(root, text='РАССЧЕТ', command=f_open_rasschet)
+    btn_report   = MyButton(root, text='ДОКЛАД', command=f_report)
+    btn_heroku   = MyButton(root, text='СTАТИСТИКА', command=f_heroku)
+    btn_message_put  = MyButton(root, text='M PUT', command=f_message_put)
+
+    text_message = Text(root, width=70, height=2, font='arial 12', relief=SUNKEN, bd=2)
+    try:
+        f_message_check()
+    except sqlite3.OperationalError:
+        print ("Can not find table 'prices_info'. Can not put TEXT in field ")
+
+    btn_message_check  = MyButton(root, text='M CHECK', command=f_message_check)
+
+    #Fonts for tree_inf
+    style = ttk.Style()
+    style.configure('Treeview', font='arial 12')
+    style.configure('Treeview.Heading', font='arial 12')
+
+    #Tree_TOP
+    tree_inf = ttk.Treeview(fra_top)
+    tree_inf['column'] = ('склад М/к', 'склад Цех', 'Остаток Цех', 'Производство', 'Остаток', 'ПРОДАЖИ', 'Заявка', 'Резерв', 'ЗАПУСК')
+    tree_inf.column('склад М/к', width=100,anchor='n')
+    tree_inf.column('склад Цех', width=100,anchor='n')
+    tree_inf.column('Остаток Цех', width=100,anchor='n')
+    tree_inf.column('Производство', width=100,anchor='n')
+    tree_inf.column('Остаток', width=100,anchor='n')
+    tree_inf.column('ПРОДАЖИ', width=100,anchor='n')
+    tree_inf.column('Заявка', width=100,anchor='n')
+    tree_inf.column('Резерв', width=100,anchor='n')
+    tree_inf.column('ЗАПУСК', width=100,anchor='n')
+    tree_inf.heading('склад М/к',text='склад М/к')
+    tree_inf.heading('склад Цех', text='склад Цех')
+    tree_inf.heading('Остаток Цех', text='Остаток Цех')
+    tree_inf.heading('Производство', text='Производство')
+    tree_inf.heading('Остаток', text='Остаток')
+    tree_inf.heading('ПРОДАЖИ', text='ПРОДАЖИ')
+    tree_inf.heading('Заявка', text='Заявка')
+    tree_inf.heading('Резерв', text='Резерв')
+    tree_inf.heading('ЗАПУСК', text='ЗАПУСК')
+    tree_inf.grid(row=1, column=0)
+
+    # Tree MIDDLE
+    tree_middle = ttk.Treeview(fra_middle)
+    tree_middle['column'] = ('К-во')
+    tree_middle.column('К-во', width=100,anchor='n')
+    tree_middle.heading('К-во', text='К-во')
+    tree_middle.grid(row=1, column=0)
+
+    # Tree STORE
+    tree_store = ttk.Treeview(fra_store)
+    tree_store['column'] = ('Дата')
+    tree_store.column('Дата', width=100,anchor='n')
+    tree_store.heading('Дата', text='Дата')
+    tree_store.grid(row=1, column=0)
+
+    # Tree BOTTOM
+    tree_bottom = ttk.Treeview(fra_bottom)
+    tree_bottom['height'] = 20
+    tree_bottom['column'] = ('ostatok_ceh', 'ostatok', 'Производство', 'need', 'delta', 'zapusk', 'width', 'long', 'shtribs', 'x', 'y', 'LONG','DELTA', 'zapusk_karta')
+    tree_bottom.column('ostatok_ceh', width=120, anchor='n')
+    tree_bottom.column('ostatok', width=80, anchor='n')
+    tree_bottom.column('Производство', width=150, anchor='n')
+    tree_bottom.column('need', width=80, anchor='n')
+    tree_bottom.column('delta', width=80, anchor='n')
+    tree_bottom.column('zapusk', width=80, anchor='n')
+    tree_bottom.column('width', width=80, anchor='n')
+    tree_bottom.column('long', width=80, anchor='n')
+    tree_bottom.column('shtribs', width=80, anchor='n')
+    tree_bottom.column('x', width=80, anchor='n')
+    tree_bottom.column('y', width=80, anchor='n')
+    tree_bottom.column('LONG', width=100, anchor='n')
+    tree_bottom.column('DELTA', width=100, anchor='n')
+    tree_bottom.column('zapusk_karta', width=100, anchor='n')
+    tree_bottom.heading('ostatok_ceh', text='Цех')
+    tree_bottom.heading('ostatok', text='Остаток Цех')
+    tree_bottom.heading('Производство', text='Производство')
+    tree_bottom.heading('need', text='НУЖНО')
+    tree_bottom.heading('delta', text='ДЕЛЬТА')
+    tree_bottom.heading('zapusk', text='ЗАПУСК')
+    tree_bottom.heading('width', text='ширина')
+    tree_bottom.heading('long', text='длина')
+    tree_bottom.heading('shtribs', text='штрибс')
+    tree_bottom.heading('x', text='x')
+    tree_bottom.heading('y', text='y')
+    tree_bottom.heading('LONG', text='ДЛИНА')
+    tree_bottom.heading('DELTA', text='DELTA')
+    tree_bottom.heading('zapusk_karta', text='Запуск_карта')
+    tree_bottom.grid(row=1, column=0)
+
+    tree_shtribs = ttk.Treeview(fra_shtribs)
+    tree_shtribs['column'] = ('quantity')
+    tree_shtribs.column('quantity', width=100, anchor='n')
+    tree_shtribs.heading('quantity', text='Длина, м')
+    tree_shtribs.grid(row=1, column=0)
+
+    btn_refresh.grid(row=1, column=0, padx=5, pady=5, sticky='w')
+    label_period_product.grid(row=1, column=1, padx=5, pady=5, sticky='w')
+    btn_count.grid(row=1, column=2, padx=5, pady=5, sticky='e')
+    ent_count.grid(row=1, column=3, padx=5, pady=5, sticky='w')
+    btn_product.grid(row=1, column=4, padx=5, pady=5, sticky='w')
+    btn_shtribs.grid(row=1, column=5, padx=5, pady=5, sticky='w')
+    btn_rasschet.grid(row=1, column=6, padx=5, pady=5, sticky='w')
+    # rad_ostatok_ceh.grid(row=2, column=0, padx=5, pady=5, sticky='w')
+    rad_zayavka.grid(row=2, column=1, padx=5, pady=5, sticky='w')
+    rad_rezerv.grid(row=2, column=2, padx=5, pady=5, sticky='w')
+    rad_product.grid(row=2, column=3, padx=5, pady=5, sticky='w')
+    rad_specif_inf.grid(row=2, column=4, padx=5, pady=5, sticky='w')
+    rad_zapusk_inf.grid(row=2, column=5, padx=5, pady=5, sticky='w')
+    rad_quantity.grid(row=2, column=6, padx=5, pady=5, sticky='e')
+    rad_specif_middle.grid(row=2, column=7, padx=5, pady=5, sticky='e')
+    fra_top.grid(row=3, column=0, columnspan=6, padx=5, pady=5)
+    fra_middle.grid(row=3, column=6, columnspan=8, padx=5, pady=5, sticky='w')
+    fra_store.grid(row=3, column=8, padx=5, pady=5, sticky='w')
+    rad_ostatok_bottom.grid(row=4, column=0, padx=5, pady=5, sticky='w')
+    rad_zapusk_bottom.grid(row=4, column=1, padx=5, pady=5, sticky='w')
+    rad_product_bottom.grid(row=4, column=2, padx=5, pady=5, sticky='w')
+    btn_file.grid(row=4, column=4, padx=5, pady=5, sticky='w')
+    btn_delta.grid(row=4, column=4, padx=5, pady=5, sticky='w')
+    btn_screen.grid(row=4, column=5, padx=5, pady=5, sticky='w')
+    btn_zagotovka.grid(row=4, column=6, padx=5, pady=5, sticky='w')
+    btn_save_store.grid(row=4, column=7, padx=5, pady=5, sticky='w')
+    btn_kharkov.grid(row=4, column=8, padx=5, pady=5, sticky='w')
+    fra_bottom.grid(row=5, column=0, columnspan=8, padx=5, pady=5, sticky='w')
+    fra_shtribs.grid(row=5, column=8, padx=5, pady=5, sticky='w')
+    btn_report.grid(row=6, column=0, padx=5, pady=5, sticky='w')
+    btn_heroku.grid(row=6, column=1, padx=5, pady=5, sticky='w')
+    btn_message_put.grid(row=6, column=2, padx=5, pady=5, sticky='w')
+    text_message.grid(row=6, column=3, columnspan=7, padx=5, pady=5, sticky='w')
+    btn_message_check.grid(row=6, column=7, padx=5, pady=5, sticky='w')
+
+    # functions for start
+    f_connection()              # SQL-quary to 1C
+    f_main()                    # for 'WORK' and 'DEMO' versions
+
+    f_load_delta()              # 'ostatky_kharkov.pkl' - load data
+    f_table_tree_inf()          # creating MAIN TABLE // 'table_tree_inf'
+    previous_zapusk()           # for loading data in table 'previous zapusk'
+    f_create_db()               # rewriting 'base_factory.db' and sending to FTP-SERVER
+    f_statistica()              # rewriting 'statistic.xls' from FTP-SERVER
+
+
+    print('finish ........................')
+
+    root.bind('<Control-z>', f_close)
+    tree_inf.bind('<Double-Button-1>', f_double_click_inf)
+    tree_inf.bind('<Return>', f_double_click_inf)
+    tree_middle.bind('<Double-Button-1>', f_double_click_middle)
+    tree_middle.bind('<Delete>', f_del_middle)
+    tree_bottom.bind('<Double-Button-1>', f_double_click_bottom)
+    tree_bottom.bind('<Delete>', f_delete_item)
+    tree_store.bind('<Double-Button-1>', f_input)
+    tree_store.bind('<Delete>', f_delete_item_store)
+
+    # for table SCREEN
+    var_screen = IntVar()
+    var_screen.set(13)              # creating SCREEN table by default = ALL PRODUCTION
+    var_screen_z = IntVar()
+    var_screen_z.set(11)
+
+    root.mainloop()
+
+
 
 #hidden import !!!!!!
 # pyinstaller --hidden-import=pyttsx3.drivers --hidden-import=pyttsx3.drivers.dummy --hidden-import=pyttsx3.drivers.espeak --hidden-import=pyttsx3.drivers.nsss --hidden-import=pyttsx3.drivers.sapi5 -F factory.py
